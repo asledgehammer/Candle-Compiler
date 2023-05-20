@@ -14,8 +14,17 @@ public class YamlParameter extends YamlEntity {
   YamlParameter(Map<String, Object> raw) {
     super(raw);
 
-    readString("name", true);
-    readString("type", true);
-    readString("notes");
+    this.name = readString("name", true);
+    this.type = readString("type", true);
+    this.notes = readString("notes");
+  }
+
+  @Override
+  public String toString() {
+    return "YamlParameter{" +
+            "name='" + name + '\'' +
+            ", type='" + type + '\'' +
+            ", notes='" + notes + '\'' +
+            '}';
   }
 }

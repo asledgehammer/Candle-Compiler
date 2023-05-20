@@ -34,6 +34,7 @@ public class YamlFile extends YamlEntity {
     this.constructors = readConstructors();
   }
 
+  @NotNull
   private Map<String, YamlField> readFields() {
     if (!raw.containsKey("fields")) return new HashMap<>();
 
@@ -48,6 +49,7 @@ public class YamlFile extends YamlEntity {
     return fields;
   }
 
+  @NotNull
   private Map<String, YamlMethodCluster> readMethods() {
     if (!raw.containsKey("methods")) return new HashMap<>();
 
@@ -69,6 +71,7 @@ public class YamlFile extends YamlEntity {
     return methods;
   }
 
+  @NotNull
   private List<YamlConstructor> readConstructors() {
     if (!raw.containsKey("constructors")) return new ArrayList<>();
     List<YamlConstructor> constructors = new ArrayList<>();
@@ -78,5 +81,52 @@ public class YamlFile extends YamlEntity {
       constructors.add(constructor);
     }
     return constructors;
+  }
+
+  @Nullable
+  public YamlField getField(@NotNull String name) {
+    return this.fields.get(name);
+  }
+
+  @Nullable
+  public YamlMethodCluster getMethodsByName(@NotNull String name) {
+    return this.methods.get(name);
+  }
+
+  @Nullable
+  public YamlMethod getMethod(String name, Class<?>... parameterTypes) {
+    YamlMethodCluster cluster = getMethodsByName(name);
+    if (cluster == null) return null;
+    return cluster.getWithParameters(parameterTypes);
+  }
+
+  @NotNull
+  public List<YamlConstructor> getConstructors() {
+    return this.constructors;
+  }
+
+  @NotNull
+  public Map<String, YamlField> getFields() {
+    return this.fields;
+  }
+
+  @NotNull
+  public Map<String, YamlMethodCluster> getMethods() {
+    return this.methods;
+  }
+
+  @NotNull
+  public String getName() {
+    return this.name;
+  }
+
+  @NotNull
+  String getPackage() {
+    return this.pkg;
+  }
+
+  @NotNull
+  public String getPath() {
+    return this.path;
   }
 }

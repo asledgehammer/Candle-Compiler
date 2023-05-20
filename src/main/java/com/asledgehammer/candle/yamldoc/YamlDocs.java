@@ -26,7 +26,7 @@ public class YamlDocs {
       definitions.put(definition.path, definition);
     }
 
-    System.out.println(definitions);
+    System.out.println(getDefinition("zombie.Lua.LuaManager$GlobalObject").getMethod("triggerEvent", String.class));
   }
 
   private List<File> getFilesFromDir(File dir) {
@@ -48,6 +48,10 @@ public class YamlDocs {
     }
 
     return list;
+  }
+
+  YamlFile getDefinition(String path) {
+    return definitions.get(path.replaceAll("\\$", "."));
   }
 
   public static void main(String[] args) throws FileNotFoundException {
