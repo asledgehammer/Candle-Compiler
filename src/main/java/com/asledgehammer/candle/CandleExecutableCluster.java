@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class CandleExecutableCluster<C extends CandleExecutable>
+public class CandleExecutableCluster<C extends CandleExecutable<?, ?>>
     extends CandleElement<CandleExecutableCluster<C>> {
 
   private final List<C> overloads = new ArrayList<>();
@@ -68,10 +68,6 @@ public class CandleExecutableCluster<C extends CandleExecutable>
 
   public C getFirst() {
     return first;
-  }
-
-  public int size() {
-    return overloads.size() + 1;
   }
 
   public List<C> getOverloads() {

@@ -22,7 +22,7 @@ class Candle {
     this.graph.render(adapter);
   }
 
-  void save(File dir) {
+  void save(File dir) throws IOException {
     saveJavaAPI(dir);
     saveGlobalAPI(dir);
     this.graph.save(dir);
@@ -42,6 +42,7 @@ class Candle {
           .append(cluster.getRenderedCode().replaceAll("GlobalObject.", ""))
           .append("\n");
     }
+    System.out.println("Candle: Writing __global.lua ..");
     CandleGraph.write(new File(dir, "__global.lua"), builder.toString());
   }
 
@@ -71,20 +72,17 @@ class Candle {
         --- @alias KahluaTable table
         """;
 
+    System.out.println("Candle: Writing __java.lua ..");
     CandleGraph.write(new File(dir, "__java.lua"), fileContents);
   }
 
   public static void main(String[] yargs) throws IOException {
 
     String path = "./dist/";
-    if (yargs.length != 0) {
-      path = yargs[1];
-    }
+    if (yargs.length != 0) path = yargs[1];
 
     File dir = new File(path);
-    if (!dir.exists() && !dir.mkdirs()) {
-      throw new IOException("Failed to mkdirs: " + path);
-    }
+    if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
     Candle candle = new Candle();
     candle.walk();

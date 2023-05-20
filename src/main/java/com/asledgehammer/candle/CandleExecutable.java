@@ -48,10 +48,6 @@ public abstract class CandleExecutable<E extends Executable, C extends CandleExe
     return !this.parameters.isEmpty();
   }
 
-  public int size() {
-    return parameters.size();
-  }
-
   public boolean isPublic() {
     return bPublic;
   }

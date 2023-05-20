@@ -4,9 +4,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 
-public class CandleConstructor extends CandleExecutable<Constructor, CandleConstructor> {
+public class CandleConstructor extends CandleExecutable<Constructor<?>, CandleConstructor> {
 
-  public CandleConstructor(@NotNull Constructor executable) {
+  public CandleConstructor(@NotNull Constructor<?> executable) {
     super(executable);
   }
 

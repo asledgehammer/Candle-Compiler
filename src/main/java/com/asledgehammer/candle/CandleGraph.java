@@ -9,14 +9,11 @@ import java.util.*;
 
 public class CandleGraph {
 
-  CandleClassBag classBag = new CandleClassBag();
-
-  Map<Class<?>, CandleAlias> aliases = new HashMap<>();
-  Map<Class<?>, CandleClass> classes = new HashMap<>();
-  List<CandleAlias> aliasesSorted = new ArrayList<>();
-  List<CandleClass> classesSorted = new ArrayList<>();
-
-  public CandleGraph() {}
+  final Map<Class<?>, CandleAlias> aliases = new HashMap<>();
+  final Map<Class<?>, CandleClass> classes = new HashMap<>();
+  final List<CandleAlias> aliasesSorted = new ArrayList<>();
+  final List<CandleClass> classesSorted = new ArrayList<>();
+  final CandleClassBag classBag = new CandleClassBag();
 
   public void walk() {
 
@@ -71,7 +68,7 @@ public class CandleGraph {
     }
   }
 
-  public void save(File dir) {
+  public void save(File dir) throws IOException {
     saveAlias(dir);
 
     for (CandleClass candleClass : classesSorted) {
@@ -82,20 +79,14 @@ public class CandleGraph {
 
   private void saveAlias(File dir) {
     File file = new File(dir, "__alias.lua");
-    //    System.out.println("Candle: Saving __alias.lua..");
-    StringBuilder builder = new StringBuilder("""
-
-    ---------- ALIAS ----------
-
-    """);
+    System.out.println("Candle: Writing __alias.lua..");
+    StringBuilder builder = new StringBuilder();
     for (CandleAlias candleAlias : aliasesSorted) {
       if (isClass(candleAlias.getClazz())) continue;
       String renderedCode = candleAlias.getRenderedCode();
       if (builder.indexOf(renderedCode) != -1) continue;
-
       builder.append(candleAlias.getRenderedCode()).append('\n');
     }
-
     write(file, builder.toString());
   }
 

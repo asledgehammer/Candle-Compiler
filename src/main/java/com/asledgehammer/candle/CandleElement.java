@@ -34,18 +34,9 @@ public abstract class CandleElement<E extends CandleElement<E>> {
     this.renderedCode = code;
   }
 
-  public boolean isWalked() {
-    return this.walked;
-  }
-
-  public boolean isRendered() {
-    return this.rendered;
-  }
-
   public String getLuaName() {
     return luaName;
   }
 
   abstract void onWalk(@NotNull CandleGraph graph);
-
 }

@@ -128,110 +128,96 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         return resultCode;
       };
 
-  CandleRenderer<CandleClass> classRenderer =
-      candleClass -> {
-        Map<String, CandleField> fields = candleClass.getFields();
-        Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
-            candleClass.getStaticMethods();
-        Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();
-
-        boolean alt = false;
-        String className = candleClass.getLuaName();
-        String classNameLegal = className;
-        if (className.contains("$")) {
-          classNameLegal = "_G['" + className + "']";
-          alt = true;
-        }
-
-        classNameLegalCurrent = classNameLegal;
-
-        Class<?> parentClass = candleClass.getClazz().getSuperclass();
-        String parentName = parentClass != null ? parentClass.getSimpleName() : "";
-        String superClazzName =
-            parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
-
-        StringBuilder builder = new StringBuilder("--- @meta\n\n");
-        builder.append("--- @class ").append(className).append(superClazzName).append('\n');
-
-        Class<?> clazz = candleClass.getClazz();
-        Class<?>[] interfazes = clazz.getInterfaces();
-        for (Class<?> interfaze : interfazes) {
-          builder.append("--- @implement ").append(interfaze.getSimpleName()).append('\n');
-        }
-
-        if (!fields.isEmpty()) {
-          List<String> keysSorted = new ArrayList<>(fields.keySet());
-          keysSorted.sort(Comparator.naturalOrder());
-          for (String fieldName : keysSorted) {
-            builder.append(fieldRenderer.onRender(fields.get(fieldName))).append('\n');
-          }
-        }
-
-        builder.append(classNameLegal).append(" = {};").append('\n');
-        builder.append('\n');
-
-        if (alt) {
-          builder.append("local temp = ").append(classNameLegal).append(";\n");
-        }
-
-        if (!methodsStatic.isEmpty()) {
-          builder.append("------------------------------------\n");
-          builder.append("---------- STATIC METHODS ----------\n");
-          builder.append("------------------------------------\n\n");
-          List<String> keysSorted = new ArrayList<>(methodsStatic.keySet());
-          keysSorted.sort(Comparator.naturalOrder());
-          for (String fieldName : keysSorted) {
-            builder
-                .append(methodRenderer.onRender(methodsStatic.get(fieldName)))
-                .append('\n')
-                .append('\n');
-          }
-          builder.append('\n');
-        }
-
-        if (!methods.isEmpty()) {
-          builder.append("------------------------------------\n");
-          builder.append("------------- METHODS --------------\n");
-          builder.append("------------------------------------\n\n");
-          List<String> keysSorted = new ArrayList<>(methods.keySet());
-          keysSorted.sort(Comparator.naturalOrder());
-          for (String fieldName : keysSorted) {
-            builder
-                .append(methodRenderer.onRender(methods.get(fieldName)))
-                .append('\n')
-                .append('\n');
-          }
-          builder.append('\n');
-        }
-
-        if (candleClass.hasConstructors()) {
-          builder.append("------------------------------------\n");
-          builder.append("----------- CONSTRUCTOR ------------\n");
-          builder.append("------------------------------------\n\n");
-
-          CandleExecutableCluster<CandleConstructor> cluster = candleClass.getConstructors();
-          builder.append(constructorRenderer.onRender(cluster));
-          builder.append('\n');
-        }
-
-        return builder.toString();
-      };
-
-  CandleRenderer<CandleAlias> aliasRenderer =
-      candleAlias -> "--- @class " + candleAlias.getLuaName();
-
   @Override
   public CandleRenderer<CandleClass> getClassRenderer() {
-    return classRenderer;
+    return candleClass -> {
+      Map<String, CandleField> fields = candleClass.getFields();
+      Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
+          candleClass.getStaticMethods();
+      Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();
+
+      boolean alt = false;
+      String className = candleClass.getLuaName();
+      String classNameLegal = className;
+      if (className.contains("$")) {
+        classNameLegal = "_G['" + className + "']";
+        alt = true;
+      }
+
+      classNameLegalCurrent = classNameLegal;
+
+      Class<?> parentClass = candleClass.getClazz().getSuperclass();
+      String parentName = parentClass != null ? parentClass.getSimpleName() : "";
+      String superClazzName =
+          parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
+
+      StringBuilder builder = new StringBuilder("--- @meta\n\n");
+      builder.append("--- @class ").append(className).append(superClazzName).append('\n');
+
+      Class<?> clazz = candleClass.getClazz();
+      Class<?>[] interfazes = clazz.getInterfaces();
+      for (Class<?> interfaze : interfazes) {
+        builder.append("--- @implement ").append(interfaze.getSimpleName()).append('\n');
+      }
+
+      if (!fields.isEmpty()) {
+        List<String> keysSorted = new ArrayList<>(fields.keySet());
+        keysSorted.sort(Comparator.naturalOrder());
+        for (String fieldName : keysSorted) {
+          builder.append(fieldRenderer.onRender(fields.get(fieldName))).append('\n');
+        }
+      }
+
+      builder.append(classNameLegal).append(" = {};").append('\n');
+      builder.append('\n');
+
+      if (alt) {
+        builder.append("local temp = ").append(classNameLegal).append(";\n");
+      }
+
+      if (!methodsStatic.isEmpty()) {
+        builder.append("------------------------------------\n");
+        builder.append("---------- STATIC METHODS ----------\n");
+        builder.append("------------------------------------\n\n");
+        List<String> keysSorted = new ArrayList<>(methodsStatic.keySet());
+        keysSorted.sort(Comparator.naturalOrder());
+        for (String fieldName : keysSorted) {
+          builder
+              .append(methodRenderer.onRender(methodsStatic.get(fieldName)))
+              .append('\n')
+              .append('\n');
+        }
+        builder.append('\n');
+      }
+
+      if (!methods.isEmpty()) {
+        builder.append("------------------------------------\n");
+        builder.append("------------- METHODS --------------\n");
+        builder.append("------------------------------------\n\n");
+        List<String> keysSorted = new ArrayList<>(methods.keySet());
+        keysSorted.sort(Comparator.naturalOrder());
+        for (String fieldName : keysSorted) {
+          builder.append(methodRenderer.onRender(methods.get(fieldName))).append('\n').append('\n');
+        }
+        builder.append('\n');
+      }
+
+      if (candleClass.hasConstructors()) {
+        builder.append("------------------------------------\n");
+        builder.append("----------- CONSTRUCTOR ------------\n");
+        builder.append("------------------------------------\n\n");
+
+        CandleExecutableCluster<CandleConstructor> cluster = candleClass.getConstructors();
+        builder.append(constructorRenderer.onRender(cluster));
+        builder.append('\n');
+      }
+
+      return builder.toString();
+    };
   }
 
   @Override
   public CandleRenderer<CandleAlias> getAliasRenderer() {
-    return aliasRenderer;
-  }
-
-  @Override
-  public CandleRenderer<CandleExecutableCluster<CandleMethod>> getMethodRenderer() {
-    return methodRenderer;
+    return candleAlias -> "--- @class " + candleAlias.getLuaName();
   }
 }

@@ -3,6 +3,7 @@ package com.asledgehammer.candle;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -32,9 +33,9 @@ public class CandleClass extends CandleEntity<CandleClass> {
     Class<?> clazz = getClazz();
     if (clazz.isEnum()) return;
 
-    Constructor[] jConstructors = getClazz().getDeclaredConstructors();
+    Constructor<?>[] jConstructors = getClazz().getDeclaredConstructors();
 
-    for (Constructor jConstructor : jConstructors) {
+    for (Constructor<?> jConstructor : jConstructors) {
       int modifiers = jConstructor.getModifiers();
 
       // Make sure that we only add public constructors.
@@ -81,11 +82,6 @@ public class CandleClass extends CandleEntity<CandleClass> {
     keysSorted.sort(Comparator.naturalOrder());
     for (String fieldName : keysSorted) {
       CandleField candleField = fields.get(fieldName);
-      //      System.out.println(
-      //          "Candle: Walking Class: FIELD    public static "
-      //              + candleField.getClazz().getSimpleName()
-      //              + " "
-      //              + candleField.getLuaName());
       candleField.walk(graph);
     }
   }
@@ -146,20 +142,14 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
     for (String key : keysSorted) {
       CandleExecutableCluster<CandleMethod> cluster = clusters.get(key);
-      //      System.out.println(
-      //          "Candle: Walking Class: METHOD    public "
-      //              + (cluster.getFirst().isStatic() ? "static " : " ")
-      //              + cluster.getFirst().getReturnType().getSimpleName()
-      //              + " "
-      //              + cluster.getLuaName()
-      //              + "()");
       cluster.walk(graph);
     }
   }
 
-  public void save(@NotNull File dir) {
+  public void save(@NotNull File dir) throws IOException {
     File dirPackage = new File(dir, getClazz().getPackageName().replace("\\.", "/"));
-    if (!dirPackage.exists()) dirPackage.mkdirs();
+    if (!dirPackage.exists() && !dirPackage.mkdirs())
+      throw new IOException("Cannot mkdirs: " + dirPackage.getPath());
     File file = new File(dirPackage, getClazz().getSimpleName() + ".lua");
     CandleGraph.write(file, getRenderedCode());
   }
