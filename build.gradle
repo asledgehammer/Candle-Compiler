@@ -36,4 +36,9 @@ dependencies {
     // PZ Libraries
     implementation fileTree(dir: 'lib', include: ['*.jar'])
     implementation 'org.jetbrains:annotations:24.0.0'
+    // https://mvnrepository.com/artifact/junit/junit
+    // testImplementation 'junit:junit:4.4'
+    // https://mvnrepository.com/artifact/org.yaml/snakeyaml
+    implementation 'org.yaml:snakeyaml:2.0'
+
 }
