@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 public class YamlFile extends YamlEntity {
@@ -94,10 +96,50 @@ public class YamlFile extends YamlEntity {
   }
 
   @Nullable
-  public YamlMethod getMethod(String name, Class<?>... parameterTypes) {
+  public YamlMethod getMethod(@NotNull String name, Class<?>... parameterTypes) {
     YamlMethodCluster cluster = getMethodsByName(name);
     if (cluster == null) return null;
     return cluster.getWithParameters(parameterTypes);
+  }
+
+  @Nullable
+  public YamlConstructor getConstructor(Class<?>... parameterTypes) {
+
+    boolean DEBUG = name.equals("IsoCell");
+    if(DEBUG)
+    System.out.println(name + ".getConstructor(" + Arrays.toString(parameterTypes) + ")");
+
+    if(constructors.isEmpty()) return null;
+
+    for(YamlConstructor next : constructors) {
+
+      if(DEBUG) System.out.println("\t" + Arrays.toString(next.parameters));
+      if(next.parameters.length == parameterTypes.length) {
+        boolean invalid = false;
+        for(int index = 0; index < parameterTypes.length; index++) {
+          if(!parameterTypes[index].getSimpleName().equals(next.parameters[index].type)) {
+            invalid = true;
+            break;
+          }
+        }
+        if(invalid) continue;
+        return next;
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public YamlMethod getMethod(@NotNull Method method) {
+    String name = method.getName();
+    Class<?>[] params = new Class<?>[method.getParameterCount()];
+    Parameter[] parameters = method.getParameters();
+    for (int i = 0; i < parameters.length; i++) {
+      Parameter parameter = parameters[i];
+      params[i] = parameter.getType();
+    }
+    return getMethod(name, params);
   }
 
   @NotNull
@@ -128,5 +170,10 @@ public class YamlFile extends YamlEntity {
   @NotNull
   public String getPath() {
     return this.path;
+  }
+
+  @Nullable
+  public String getNotes() {
+    return this.notes;
   }
 }

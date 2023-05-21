@@ -39,7 +39,11 @@ class Candle {
       CandleExecutableCluster<CandleMethod> cluster = methods.get(methodName);
       builder
           .append("\n")
-          .append(cluster.getRenderedCode().replaceAll("GlobalObject.", ""))
+          .append(
+              cluster
+                  .getRenderedCode()
+                  .replaceAll("GlobalObject.", "")
+                  .replaceAll("--- @public\n--- @static\n", ""))
           .append("\n");
     }
     System.out.println("Candle: Writing __global.lua ..");

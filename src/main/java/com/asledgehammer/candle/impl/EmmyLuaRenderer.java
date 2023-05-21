@@ -1,6 +1,7 @@
 package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
+import com.asledgehammer.candle.yamldoc.YamlFile;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -23,6 +24,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       cluster -> {
         CandleConstructor first = cluster.getFirst();
 
+        byte argOffset = 1;
+
         StringBuilder builder = new StringBuilder();
         builder.append("--- @public\n");
         if (first.isStatic()) builder.append("--- @static\n");
@@ -32,6 +35,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
+            if(pName.equals("true")) {
+              pName = "arg" + argOffset++;
+            }
             String pType = parameter.getJavaParameter().getType().getSimpleName();
             builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
             paramBuilder.append(pName).append(", ");
@@ -77,6 +83,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       cluster -> {
         CandleMethod first = cluster.getFirst();
 
+        byte argOffset = 1;
+
         StringBuilder builder = new StringBuilder();
         builder.append("--- @public\n");
         if (first.isStatic()) builder.append("--- @static\n");
@@ -86,6 +94,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
+            if(pName.equals("true")) {
+              pName = "arg" + argOffset++;
+            }
             String pType = parameter.getJavaParameter().getType().getSimpleName();
             builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
             paramBuilder.append(pName).append(", ");
@@ -131,6 +142,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
   @Override
   public CandleRenderer<CandleClass> getClassRenderer() {
     return candleClass -> {
+
+      System.out.println("Rendering: " + candleClass.getLuaName());
+
       Map<String, CandleField> fields = candleClass.getFields();
       Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
           candleClass.getStaticMethods();
@@ -153,6 +167,15 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
       StringBuilder builder = new StringBuilder("--- @meta\n\n");
       builder.append("--- @class ").append(className).append(superClazzName).append('\n');
+
+      YamlFile yaml = candleClass.getYaml();
+
+      if(yaml != null) {
+        String notes = yaml.getNotes();
+        if(notes != null) {
+          builder.append("--- ").append(notes).append('\n');
+        }
+      }
 
       Class<?> clazz = candleClass.getClazz();
       Class<?>[] interfazes = clazz.getInterfaces();

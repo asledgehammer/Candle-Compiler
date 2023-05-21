@@ -1,5 +1,6 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.candle.yamldoc.YamlParameter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Executable;

@@ -1,5 +1,6 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.candle.yamldoc.YamlDocs;
 import zombie.iso.sprite.IsoSprite;
 
 import java.io.File;
@@ -15,7 +16,15 @@ public class CandleGraph {
   final List<CandleClass> classesSorted = new ArrayList<>();
   final CandleClassBag classBag = new CandleClassBag();
 
+  final YamlDocs docs = new YamlDocs();
+
   public void walk() {
+
+    try {
+      docs.addDirectory(new File("./docs"));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     aliases.clear();
     classes.clear();
@@ -122,6 +131,10 @@ public class CandleGraph {
 
   public boolean isExposedClass(Class<?> clazz) {
     return this.classBag.getClasses().contains(clazz);
+  }
+
+  public YamlDocs getDocs() {
+    return this.docs;
   }
 
   public static void write(File file, String content) {

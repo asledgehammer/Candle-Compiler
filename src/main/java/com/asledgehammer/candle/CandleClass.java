@@ -1,6 +1,10 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.candle.yamldoc.YamlField;
+import com.asledgehammer.candle.yamldoc.YamlFile;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import zombie.Lua.LuaManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,12 +21,18 @@ public class CandleClass extends CandleEntity<CandleClass> {
   private final Map<String, CandleExecutableCluster<CandleMethod>> methods = new HashMap<>();
   private CandleExecutableCluster<CandleConstructor> constructors;
 
+  @Nullable private YamlFile yaml;
+
   public CandleClass(@NotNull Class<?> clazz) {
     super(clazz);
   }
 
   @Override
   void onWalk(@NotNull CandleGraph graph) {
+
+    yaml = graph.getDocs().getFile(getClazz().getName());
+    System.out.println(getLuaName() + ": " + yaml);
+
     walkFields(graph);
     walkMethods(graph);
     walkConstructors(graph);
@@ -151,6 +161,10 @@ public class CandleClass extends CandleEntity<CandleClass> {
     if (!dirPackage.exists() && !dirPackage.mkdirs())
       throw new IOException("Cannot mkdirs: " + dirPackage.getPath());
     File file = new File(dirPackage, getClazz().getSimpleName() + ".lua");
+
+    if (getClazz().equals(LuaManager.GlobalObject.class)) {
+      return;
+    }
     CandleGraph.write(file, getRenderedCode());
   }
 
@@ -175,5 +189,10 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
   public boolean hasConstructors() {
     return constructors != null;
+  }
+
+  @Nullable
+  public YamlFile getYaml() {
+    return this.yaml;
   }
 }

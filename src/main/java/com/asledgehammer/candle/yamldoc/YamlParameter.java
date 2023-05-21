@@ -27,4 +27,19 @@ public class YamlParameter extends YamlEntity {
             ", notes='" + notes + '\'' +
             '}';
   }
+
+  @NotNull
+  public String getName() {
+    return this.name;
+  }
+
+  @NotNull
+  public String getType() {
+    return type;
+  }
+
+  @Nullable
+  public String getNotes() {
+    return notes;
+  }
 }

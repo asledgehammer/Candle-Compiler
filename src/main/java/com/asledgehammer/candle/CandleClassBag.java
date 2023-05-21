@@ -138,6 +138,9 @@ public class CandleClassBag {
   }
 
   private void addClasses__41_78() {
+    // Expose API.
+    addClass(LuaManager.GlobalObject.class);
+
     addClass(BufferedReader.class);
     addClass(BufferedWriter.class);
     addClass(DataInputStream.class);

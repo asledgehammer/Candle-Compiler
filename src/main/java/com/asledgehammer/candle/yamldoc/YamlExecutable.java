@@ -26,4 +26,9 @@ public abstract class YamlExecutable extends YamlEntity {
     }
     return parameters;
   }
+
+  @NotNull
+  public YamlParameter[] getParameters() {
+    return parameters;
+  }
 }
