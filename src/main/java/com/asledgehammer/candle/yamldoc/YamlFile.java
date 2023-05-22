@@ -105,15 +105,10 @@ public class YamlFile extends YamlEntity {
   @Nullable
   public YamlConstructor getConstructor(Class<?>... parameterTypes) {
 
-    boolean DEBUG = name.equals("IsoCell");
-    if(DEBUG)
-    System.out.println(name + ".getConstructor(" + Arrays.toString(parameterTypes) + ")");
-
     if(constructors.isEmpty()) return null;
 
     for(YamlConstructor next : constructors) {
 
-      if(DEBUG) System.out.println("\t" + Arrays.toString(next.parameters));
       if(next.parameters.length == parameterTypes.length) {
         boolean invalid = false;
         for(int index = 0; index < parameterTypes.length; index++) {

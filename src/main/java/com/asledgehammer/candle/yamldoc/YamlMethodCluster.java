@@ -34,10 +34,13 @@ public class YamlMethodCluster {
             break;
           }
         }
-        if (invalid) continue;
+        if (invalid) {
+          continue;
+        }
         return method;
       }
     }
+
     return null;
   }
 

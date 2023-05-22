@@ -9,13 +9,18 @@ public class YamlField extends YamlEntity {
 
     @NotNull final String name;
     @Nullable final String notes;
-    @NotNull final String returnType;
+    @NotNull final YamlReturn _return;
 
     YamlField(@NotNull Map<String, Object> raw) {
         super(raw);
 
         this.name = readString("name", true);
         this.notes = readString("notes");
-        this.returnType = readString("returnType");
+        this._return = new YamlReturn((Map<String, Object>) raw.get("return"));
+    }
+
+    @NotNull
+    public YamlReturn getReturn() {
+        return _return;
     }
 }

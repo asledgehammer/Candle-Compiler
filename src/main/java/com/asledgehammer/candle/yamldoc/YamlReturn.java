@@ -1,21 +1,18 @@
 package com.asledgehammer.candle.yamldoc;
 
+import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+public class YamlReturn extends YamlEntity {
 
-public class YamlParameter extends YamlEntity {
-
-  @NotNull String name;
   @NotNull String type;
   @Nullable String generic;
   @Nullable String notes;
 
-  YamlParameter(Map<String, Object> raw) {
+  YamlReturn(Map<String, Object> raw) {
     super(raw);
 
-    this.name = readString("name", true);
     this.type = readString("type", true);
     this.generic = readString("generic");
     this.notes = readString("notes");
@@ -23,17 +20,17 @@ public class YamlParameter extends YamlEntity {
 
   @Override
   public String toString() {
-    return "YamlParameter{" +
-            "name='" + name + '\'' +
-            ", type='" + type + '\'' +
-            ", generic='" + generic + '\'' +
-            ", notes='" + notes + '\'' +
-            '}';
-  }
-
-  @NotNull
-  public String getName() {
-    return this.name;
+    return "YamlReturn{"
+        + "type='"
+        + type
+        + '\''
+        + ", generic='"
+        + generic
+        + '\''
+        + ", notes='"
+        + notes
+        + '\''
+        + '}';
   }
 
   @NotNull
