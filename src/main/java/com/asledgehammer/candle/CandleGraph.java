@@ -37,16 +37,16 @@ public class CandleGraph {
     }
 
     List<Class<?>> classKeys = new ArrayList<>(classes.keySet());
-    classKeys.sort(ClazzComparator.INSTANCE);
+    classKeys.sort(CandleClassComparator.INSTANCE);
     for (Class<?> clazz : classKeys) {
       CandleClass candleClass = classes.get(clazz);
-      System.out.println("Candle: Walking: " + candleClass.getLuaName());
+      // System.out.println("Candle: Walking: " + candleClass.getLuaName());
       candleClass.walk(this);
       classesSorted.add(candleClass);
     }
 
     List<Class<?>> aliasKeys = new ArrayList<>(aliases.keySet());
-    aliasKeys.sort(ClazzComparator.INSTANCE);
+    aliasKeys.sort(CandleClassComparator.INSTANCE);
     for (Class<?> clazz : aliasKeys) {
       if (isClass(clazz)) {
         aliases.remove(clazz);
@@ -54,25 +54,17 @@ public class CandleGraph {
       }
 
       CandleAlias candleAlias = aliases.get(clazz);
-      //      System.out.println("Candle: Walking Alias: " + candleAlias.getLuaName());
       candleAlias.walk(this);
       aliasesSorted.add(candleAlias);
     }
-
-    System.out.println(
-        "IsoSprite: isClass = "
-            + isClass(IsoSprite.class)
-            + ", isAlias = "
-            + isAlias(IsoSprite.class));
   }
 
   public void render(CandleRenderAdapter adapter) {
     for (CandleAlias candleAlias : aliasesSorted) {
-      //      System.out.println("Candle: Rendering Alias: " + candleAlias.getLuaName());
       candleAlias.render(adapter.getAliasRenderer());
     }
     for (CandleClass candleClass : classesSorted) {
-      //      System.out.println("Candle: Render Class: " + candleClass.getLuaName());
+      System.out.println("Candle: Render Class: " + candleClass.getLuaName());
       candleClass.render(adapter.getClassRenderer());
     }
   }
@@ -151,17 +143,5 @@ public class CandleGraph {
   public void evaluate(Class<?> clazz) {
     while (clazz.isArray()) clazz = clazz.getComponentType();
     if (!isExposedClass(clazz) && !CandleClassBag.isExempt(clazz)) addAlias(clazz);
-  }
-}
-
-class ClazzComparator implements Comparator<Class<?>> {
-
-  static ClazzComparator INSTANCE = new ClazzComparator();
-
-  @Override
-  public int compare(Class<?> o1, Class<?> o2) {
-    int compare = o1.getSimpleName().compareTo(o2.getSimpleName());
-    if (compare == 0) return o1.getName().compareTo(o2.getName());
-    return compare;
   }
 }

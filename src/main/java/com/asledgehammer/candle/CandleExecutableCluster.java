@@ -2,105 +2,59 @@ package com.asledgehammer.candle;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Executable;
-import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class CandleExecutableCluster<C extends CandleExecutable<?, ?>>
     extends CandleElement<CandleExecutableCluster<C>> {
 
-  private final List<C> overloads = new ArrayList<>();
-  private C first;
+  private final List<C> executables = new ArrayList<>();
 
-  public CandleExecutableCluster(@NotNull C first) {
-    super(first.getLuaName());
-    this.first = first;
+  public CandleExecutableCluster(@NotNull String name) {
+    super(name);
   }
 
   @Override
   public void onWalk(@NotNull CandleGraph graph) {
-    // We add the first to the overloads and then use it to sort based on param count. Pop from the
-    // bottom of the stack To reassign the first executable. All others are sorted overloads.
-    ArrayList<C> all = new ArrayList<>();
-    all.add(first);
-    all.addAll(overloads);
-    for (C c : all) {
-      c.walk(graph);
-    }
-    all.sort(Comparator.comparingInt(o -> o.getParameters().size()));
-    first = all.get(0);
-    if (all.size() > 1) {
-      overloads.clear();
-      for (int index = 1; index < all.size(); index++) {
-
-        C next = all.get(index);
-
-        if (executableEquals(next.getExecutable(), first.getExecutable())) continue;
-
-        boolean skip = false;
-        if (!overloads.isEmpty()) {
-          for (C oNext : overloads) {
-            if (executableEquals(next.getExecutable(), oNext.getExecutable())) {
-              skip = true;
-              break;
-            }
-          }
-        }
-
-        if (!skip) overloads.add(all.get(index));
-      }
-    }
+    for (C c : executables) c.walk(graph);
+    executables.sort(CandleExecutableComparator.INSTANCE);
   }
 
   public void add(C executable) {
-    if (!executable.getLuaName().equals(this.first.getLuaName())) {
+    if (!executable.getLuaName().equals(getLuaName())) {
       throw new IllegalArgumentException(
           "Executable '"
               + executable.getLuaName()
               + "' does not match the first method name: "
               + this.getLuaName());
     }
-
-    if (!overloads.contains(executable)) overloads.add(executable);
+    executables.add(executable);
   }
 
-  public C getFirst() {
-    return first;
-  }
+//  @NotNull
+//  public Map<Integer, List<C>> sort() {
+//    Map<Integer, List<C>> groups = new HashMap<>();
+//
+//    // Place methods into their groups using parameter counts.
+//    for (C method : getExecutables()) {
+//      int count = method.getParameterCount();
+//      List<C> group = groups.computeIfAbsent(count, k -> new ArrayList<>());
+//      group.add(method);
+//    }
+//
+//    // Sort executables in their groups.
+//    for (List<C> group : groups.values()) {
+//      group.sort(CandleExecutableComparator.INSTANCE);
+//    }
+//
+//    return groups;
+//  }
 
-  public List<C> getOverloads() {
-    return overloads;
+  @NotNull
+  public List<C> getExecutables() {
+    return executables;
   }
 
   public boolean hasOverloads() {
-    return !overloads.isEmpty();
-  }
-
-  public static boolean executableEquals(Executable a, Executable b) {
-
-    // Check names first.
-    if (!a.getName().equals(b.getName())) {
-      return false;
-    }
-
-    // Check parameter-count.
-    if (a.getParameterCount() != b.getParameterCount()) {
-      return false;
-    }
-
-    // Check parameter-types.
-    Parameter[] aps = a.getParameters();
-    Parameter[] bps = b.getParameters();
-    for (int index = 0; index < aps.length; index++) {
-      Parameter ap = aps[index];
-      Parameter bp = bps[index];
-      if (!ap.getClass().equals(bp.getClass())) {
-        return false;
-      }
-    }
-
-    return true;
+    return executables.size() > 1;
   }
 }

@@ -25,8 +25,6 @@ public class YamlDocs {
       YamlFile definition = new YamlFile(file);
       definitions.put(definition.path, definition);
     }
-
-    System.out.println(getFile("zombie.Lua.LuaManager$GlobalObject").getMethod("triggerEvent", String.class));
   }
 
   private List<File> getFilesFromDir(File dir) {

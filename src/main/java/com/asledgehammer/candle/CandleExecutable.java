@@ -1,6 +1,5 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlParameter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Executable;
@@ -25,6 +24,18 @@ public abstract class CandleExecutable<E extends Executable, C extends CandleExe
     int modifiers = executable.getModifiers();
     this.bPublic = Modifier.isPublic(modifiers);
     this.bStatic = Modifier.isStatic(modifiers);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder s = new StringBuilder(this.getLuaName() + "(");
+    if (hasParameters()) {
+      for (CandleParameter parameter : parameters) {
+        s.append(parameter.getJavaParameter().getType().getSimpleName()).append(", ");
+      }
+      s = new StringBuilder(s.substring(0, s.length() - 2));
+    }
+    return s + ")";
   }
 
   @Override
@@ -59,5 +70,9 @@ public abstract class CandleExecutable<E extends Executable, C extends CandleExe
 
   public E getExecutable() {
     return executable;
+  }
+
+  public int getParameterCount() {
+    return parameters.size();
   }
 }

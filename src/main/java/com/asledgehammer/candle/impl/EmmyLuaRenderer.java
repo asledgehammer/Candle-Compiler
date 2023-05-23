@@ -22,7 +22,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
   CandleRenderer<CandleExecutableCluster<CandleConstructor>> constructorRenderer =
       cluster -> {
-        CandleConstructor first = cluster.getFirst();
+        List<CandleConstructor> constructors = cluster.getExecutables();
+        CandleConstructor first = constructors.get(0);
 
         byte argOffset = 1;
 
@@ -35,7 +36,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
-            if(pName.equals("true")) {
+            if (pName.equals("true")) {
               pName = "arg" + argOffset++;
             }
             String pType = parameter.getJavaParameter().getType().getSimpleName();
@@ -51,8 +52,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             .append('\n');
 
         if (cluster.hasOverloads()) {
-          List<CandleConstructor> overloads = cluster.getOverloads();
-          for (CandleConstructor overload : overloads) {
+          for (int index = 1; index < constructors.size(); index++) {
+            CandleConstructor overload = constructors.get(index);
             builder.append("--- @overload fun(");
             if (overload.hasParameters()) {
               List<CandleParameter> parameters = overload.getParameters();
@@ -81,7 +82,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
   CandleRenderer<CandleExecutableCluster<CandleMethod>> methodRenderer =
       cluster -> {
-        CandleMethod first = cluster.getFirst();
+        List<CandleMethod> methods = cluster.getExecutables();
+        CandleMethod first = methods.get(0);
 
         byte argOffset = 1;
 
@@ -94,7 +96,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
-            if(pName.equals("true")) {
+            if (pName.equals("true")) {
               pName = "arg" + argOffset++;
             }
             String pType = parameter.getJavaParameter().getType().getSimpleName();
@@ -107,8 +109,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         builder.append("--- @return ").append(first.getReturnType().getSimpleName()).append('\n');
 
         if (cluster.hasOverloads()) {
-          List<CandleMethod> overloads = cluster.getOverloads();
-          for (CandleMethod overload : overloads) {
+          for (int index = 1; index < methods.size(); index++) {
+            CandleMethod overload = methods.get(index);
             builder.append("--- @overload fun(");
             if (overload.hasParameters()) {
               List<CandleParameter> parameters = overload.getParameters();
@@ -121,7 +123,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
               }
               builder.setLength(builder.length() - 2);
             }
-            builder.append(")\n");
+            builder.append("): ");
+            builder.append(overload.getReturnType().getSimpleName()).append('\n');
           }
         }
 
@@ -142,13 +145,18 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
   @Override
   public CandleRenderer<CandleClass> getClassRenderer() {
     return candleClass -> {
-
-      System.out.println("Rendering: " + candleClass.getLuaName());
-
       Map<String, CandleField> fields = candleClass.getFields();
       Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
           candleClass.getStaticMethods();
       Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();
+
+//      for (String key : methodsStatic.keySet()) {
+//        methodsStatic.get(key).sort();
+//      }
+
+//      for (String key : methods.keySet()) {
+//        methods.get(key).sort();
+//      }
 
       boolean alt = false;
       String className = candleClass.getLuaName();
@@ -170,9 +178,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
       YamlFile yaml = candleClass.getYaml();
 
-      if(yaml != null) {
+      if (yaml != null) {
         String notes = yaml.getNotes();
-        if(notes != null) {
+        if (notes != null) {
           builder.append("--- ").append(notes).append('\n');
         }
       }

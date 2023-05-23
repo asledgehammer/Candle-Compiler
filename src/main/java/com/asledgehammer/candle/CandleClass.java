@@ -1,6 +1,5 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlField;
 import com.asledgehammer.candle.yamldoc.YamlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +30,6 @@ public class CandleClass extends CandleEntity<CandleClass> {
   void onWalk(@NotNull CandleGraph graph) {
 
     yaml = graph.getDocs().getFile(getClazz().getName());
-    System.out.println(getLuaName() + ": " + yaml);
 
     walkFields(graph);
     walkMethods(graph);
@@ -52,10 +50,9 @@ public class CandleClass extends CandleEntity<CandleClass> {
       if (!Modifier.isPublic(modifiers)) continue;
 
       if (constructors == null) {
-        constructors = new CandleExecutableCluster<>(new CandleConstructor(jConstructor));
-      } else {
-        constructors.add(new CandleConstructor(jConstructor));
+        constructors = new CandleExecutableCluster<>("new");
       }
+      constructors.add(new CandleConstructor(jConstructor));
     }
 
     if (hasConstructors()) constructors.walk(graph);
@@ -98,45 +95,47 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
   private void walkMethods(@NotNull CandleGraph graph) {
     Class<?> clazz = getClazz();
-    List<Method> methodz = new ArrayList<>(Arrays.stream(clazz.getDeclaredMethods()).toList());
+
+    List<Method> methods = new ArrayList<>();
+
+    Method[] methodz = clazz.getDeclaredMethods();
+    for (Method method : methodz) {
+      if (!methods.contains(method)) methods.add(method);
+    }
 
     // Add declared fields in any implementations.
     for (Class<?> interfaze : clazz.getInterfaces()) {
-      methodz.addAll(Arrays.stream(interfaze.getDeclaredMethods()).toList());
+      for (Method method : interfaze.getDeclaredMethods()) {
+        if (!methods.contains(method)) methods.add(method);
+      }
     }
 
-    for (Method method : methodz) {
+    for (Method method : methods) {
 
       CandleMethod candleMethod = new CandleMethod(method);
 
       // (Only digest public methods)
       if (!candleMethod.isPublic()) continue;
 
-      String nameLower = candleMethod.getLuaName();
-      boolean created = false;
+      String methodName = method.getName();
 
       // Attempt to grab the cluster. If it doesn't exist, create one.
       CandleExecutableCluster<CandleMethod> cluster;
       if (candleMethod.isStatic()) {
-        cluster = methodsStatic.get(nameLower);
+        cluster = this.methodsStatic.get(methodName);
         if (cluster == null) {
-          cluster = new CandleExecutableCluster<>(candleMethod);
-          methodsStatic.put(nameLower, cluster);
-          created = true;
+          cluster = new CandleExecutableCluster<>(methodName);
+          this.methodsStatic.put(methodName, cluster);
         }
       } else {
-        cluster = methods.get(nameLower);
+        cluster = this.methods.get(methodName);
         if (cluster == null) {
-          cluster = new CandleExecutableCluster<>(candleMethod);
-          methods.put(nameLower, cluster);
-          created = true;
+          cluster = new CandleExecutableCluster<>(methodName);
+          this.methods.put(methodName, cluster);
         }
       }
 
-      // If a cluster already exists for the method, simply add it.
-      if (!created) {
-        cluster.add(candleMethod);
-      }
+      cluster.add(candleMethod);
     }
 
     // Walk through both groups of method clusters.
