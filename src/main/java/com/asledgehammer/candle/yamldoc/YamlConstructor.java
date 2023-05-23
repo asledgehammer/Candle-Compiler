@@ -9,7 +9,6 @@ public class YamlConstructor extends YamlExecutable {
     final String name;
     final String[] modifiers;
     final String returnType;
-    final String notes;
 
     YamlConstructor(@NotNull Map<String, Object> raw, String name) {
         super(raw);
@@ -17,6 +16,5 @@ public class YamlConstructor extends YamlExecutable {
         this.name = name;
         this.returnType = readString("returnType");
         this.modifiers = readModifiers();
-        this.notes = readString("notes");
     }
 }

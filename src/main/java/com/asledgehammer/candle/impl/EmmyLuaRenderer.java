@@ -1,7 +1,7 @@
 package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
-import com.asledgehammer.candle.yamldoc.YamlFile;
+import com.asledgehammer.candle.yamldoc.*;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,23 +13,44 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
   String classNameLegalCurrent = "";
 
   CandleRenderer<CandleField> fieldRenderer =
-      field ->
-          "--- @field "
-              + (field.isPublic() ? "public " : "")
-              + field.getLuaName()
-              + " "
-              + field.getClazz().getSimpleName();
+      field -> {
+        YamlField yaml = field.getYaml();
+
+        String f =
+            "--- @field "
+                + (field.isPublic() ? "public " : "")
+                + field.getLuaName()
+                + " "
+                + field.getClazz().getSimpleName();
+
+        if (yaml != null && yaml.hasNotes()) f += ' ' + yaml.getNotes();
+
+        return f;
+      };
 
   CandleRenderer<CandleExecutableCluster<CandleConstructor>> constructorRenderer =
       cluster -> {
         List<CandleConstructor> constructors = cluster.getExecutables();
         CandleConstructor first = constructors.get(0);
 
+        YamlConstructor yamlFirst = first.getYaml();
+
         byte argOffset = 1;
 
         StringBuilder builder = new StringBuilder();
         builder.append("--- @public\n");
         if (first.isStatic()) builder.append("--- @static\n");
+
+        if (yamlFirst != null) {
+          if (yamlFirst.hasNotes()) {
+            builder.append("---\n");
+            List<String> lines = paginate(yamlFirst.getNotes(), 80);
+            for (String line : lines) {
+              builder.append("--- ").append(line).append('\n');
+            }
+            builder.append("---\n");
+          }
+        }
 
         StringBuilder paramBuilder = new StringBuilder();
         if (first.hasParameters()) {
@@ -85,6 +106,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       cluster -> {
         List<CandleMethod> methods = cluster.getExecutables();
         CandleMethod first = methods.get(0);
+        YamlMethod yamlFirst = first.getYaml();
 
         byte argOffset = 1;
 
@@ -92,26 +114,56 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         builder.append("--- @public\n");
         if (first.isStatic()) builder.append("--- @static\n");
 
+        if (yamlFirst != null) {
+          if (yamlFirst.hasNotes()) {
+            builder.append("---\n");
+            List<String> lines = paginate(yamlFirst.getNotes(), 80);
+            for (String line : lines) {
+              builder.append("--- ").append(line).append('\n');
+            }
+            builder.append("---\n");
+          }
+        }
+
         StringBuilder paramBuilder = new StringBuilder();
         if (first.hasParameters()) {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
+            YamlParameter yaml = parameter.getYaml();
+
             if (pName.equals("true")) {
               pName = "arg" + argOffset++;
             }
             String pType = parameter.getJavaParameter().getType().getSimpleName();
-            builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
+            builder.append("--- @param ").append(pName).append(' ').append(pType);
+
+            if (yaml != null && yaml.hasNotes()) {
+              builder.append(' ').append(yaml.getNotes());
+            }
+
+            builder.append('\n');
+
             paramBuilder.append(pName).append(", ");
           }
           paramBuilder.setLength(paramBuilder.length() - 2);
         }
 
-        builder.append("--- @return ").append(first.getReturnType().getSimpleName()).append('\n');
+        builder.append("--- @return ").append(first.getReturnType().getSimpleName());
+        if (yamlFirst != null) {
+          YamlReturn yamlReturn = yamlFirst.getReturn();
+          if (yamlReturn.hasNotes()) {
+            builder.append(' ').append(yamlFirst.getReturn().getNotes());
+          }
+        }
+
+        builder.append('\n');
 
         if (cluster.hasOverloads()) {
           for (int index = 1; index < methods.size(); index++) {
             CandleMethod overload = methods.get(index);
+            YamlMethod yaml = overload.getYaml();
+
             builder.append("--- @overload fun(");
             if (overload.hasParameters()) {
               List<CandleParameter> parameters = overload.getParameters();
@@ -125,7 +177,17 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
               builder.setLength(builder.length() - 2);
             }
             builder.append("): ");
-            builder.append(overload.getReturnType().getSimpleName()).append('\n');
+
+            builder.append(overload.getReturnType().getSimpleName());
+
+            if (yaml != null) {
+              YamlReturn yamlReturn = yaml.getReturn();
+              if (yamlReturn.hasNotes()) {
+                builder.append(' ').append(yamlReturn.getNotes());
+              }
+            }
+
+            builder.append('\n');
           }
         }
 
@@ -151,14 +213,6 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           candleClass.getStaticMethods();
       Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();
 
-//      for (String key : methodsStatic.keySet()) {
-//        methodsStatic.get(key).sort();
-//      }
-
-//      for (String key : methods.keySet()) {
-//        methods.get(key).sort();
-//      }
-
       boolean alt = false;
       String className = candleClass.getLuaName();
       String classNameLegal = className;
@@ -175,16 +229,14 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
 
       StringBuilder builder = new StringBuilder("--- @meta\n\n");
-      builder.append("--- @class ").append(className).append(superClazzName).append('\n');
+      builder.append("--- @class ").append(className).append(superClazzName);
 
       YamlFile yaml = candleClass.getYaml();
 
-      if (yaml != null) {
-        String notes = yaml.getNotes();
-        if (notes != null) {
-          builder.append("--- ").append(notes).append('\n');
-        }
+      if(yaml != null && yaml.hasNotes()) {
+          builder.append(' ').append(yaml.getNotes());
       }
+      builder.append('\n');
 
       Class<?> clazz = candleClass.getClazz();
       Class<?>[] interfazes = clazz.getInterfaces();
@@ -251,5 +303,25 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
   @Override
   public CandleRenderer<CandleAlias> getAliasRenderer() {
     return candleAlias -> "--- @class " + candleAlias.getLuaName();
+  }
+
+  private static List<String> paginate(String s, int lineLength) {
+
+    List<String> lines = new ArrayList<>();
+    StringBuilder current = new StringBuilder();
+
+    for (String word : s.split(" ")) {
+      if ((current + " " + word).length() <= lineLength) {
+        current.append(" ").append(word);
+        continue;
+      }
+      lines.add(current.toString());
+      current = new StringBuilder();
+    }
+    if (current.length() > 0) {
+      lines.add(current.toString());
+    }
+
+    return lines;
   }
 }

@@ -50,4 +50,8 @@ public class YamlParameter extends YamlEntity {
   public String getNotes() {
     return notes;
   }
+
+  public boolean hasNotes() {
+    return this.notes != null;
+  }
 }

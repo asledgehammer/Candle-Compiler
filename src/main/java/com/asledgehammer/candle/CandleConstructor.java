@@ -51,4 +51,12 @@ public class CandleConstructor extends CandleExecutable<Constructor<?>, CandleCo
   public String getLuaName() {
     return "new";
   }
+
+  public YamlConstructor getYaml() {
+    return this.yaml;
+  }
+
+  public boolean hasYaml() {
+    return this.yaml != null;
+  }
 }

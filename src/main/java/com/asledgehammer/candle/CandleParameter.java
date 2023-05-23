@@ -40,4 +40,8 @@ public class CandleParameter extends CandleEntity<CandleParameter> {
   public boolean isVarArgs() {
     return parameter.isVarArgs();
   }
+
+  public boolean hasNotes() {
+    return yaml != null && yaml.hasNotes();
+  }
 }

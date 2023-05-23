@@ -1,6 +1,7 @@
 package com.asledgehammer.candle.yamldoc;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
@@ -8,11 +9,13 @@ import java.util.Map;
 public abstract class YamlExecutable extends YamlEntity {
 
   @NotNull final YamlParameter[] parameters;
+  @Nullable final String notes;
 
   YamlExecutable(Map<String, Object> raw) {
     super(raw);
 
     this.parameters = readParameters();
+    this.notes = readString("notes");
   }
 
   @NotNull
@@ -30,5 +33,14 @@ public abstract class YamlExecutable extends YamlEntity {
   @NotNull
   public YamlParameter[] getParameters() {
     return parameters;
+  }
+
+  @Nullable
+  public String getNotes() {
+    return notes;
+  }
+
+  public boolean hasNotes() {
+    return this.notes != null;
   }
 }

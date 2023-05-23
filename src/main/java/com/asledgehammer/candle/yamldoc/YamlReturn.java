@@ -47,4 +47,8 @@ public class YamlReturn extends YamlEntity {
   public String getNotes() {
     return notes;
   }
+
+  public boolean hasNotes() {
+    return notes != null;
+  }
 }

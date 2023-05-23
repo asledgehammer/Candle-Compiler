@@ -9,7 +9,6 @@ public class YamlMethod extends YamlExecutable {
 
   final String name;
   final String[] modifiers;
-  final String notes;
   final YamlReturn _return;
 
   YamlMethod(Map<String, Object> raw) {
@@ -17,7 +16,6 @@ public class YamlMethod extends YamlExecutable {
 
     this.name = readString("name", true);
     this.modifiers = readModifiers();
-    this.notes = readString("notes");
     this._return = new YamlReturn((Map<String, Object>) raw.get("return"));
   }
 

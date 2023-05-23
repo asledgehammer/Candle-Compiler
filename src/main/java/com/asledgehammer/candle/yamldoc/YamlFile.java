@@ -105,19 +105,19 @@ public class YamlFile extends YamlEntity {
   @Nullable
   public YamlConstructor getConstructor(Class<?>... parameterTypes) {
 
-    if(constructors.isEmpty()) return null;
+    if (constructors.isEmpty()) return null;
 
-    for(YamlConstructor next : constructors) {
+    for (YamlConstructor next : constructors) {
 
-      if(next.parameters.length == parameterTypes.length) {
+      if (next.parameters.length == parameterTypes.length) {
         boolean invalid = false;
-        for(int index = 0; index < parameterTypes.length; index++) {
-          if(!parameterTypes[index].getSimpleName().equals(next.parameters[index].type)) {
+        for (int index = 0; index < parameterTypes.length; index++) {
+          if (!parameterTypes[index].getSimpleName().equals(next.parameters[index].type)) {
             invalid = true;
             break;
           }
         }
-        if(invalid) continue;
+        if (invalid) continue;
         return next;
       }
     }
@@ -170,5 +170,9 @@ public class YamlFile extends YamlEntity {
   @Nullable
   public String getNotes() {
     return this.notes;
+  }
+
+  public boolean hasNotes() {
+    return this.notes != null;
   }
 }
