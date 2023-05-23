@@ -2,6 +2,7 @@ package com.asledgehammer.candle.yamldoc;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jsoup.Jsoup;
 
 import java.io.File;
 import java.io.FileReader;
@@ -46,7 +47,7 @@ public class YamlEntity {
       if (required) throw new RuntimeException("The string '" + id + "' is not defined.");
       return null;
     }
-    return raw.get(id).toString();
+    return Jsoup.parse(raw.get(id).toString()).text();
   }
 
   @Nullable
