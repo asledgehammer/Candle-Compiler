@@ -66,7 +66,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
               }
               builder.setLength(builder.length() - 2);
             }
-            builder.append(")\n");
+            builder.append("): ");
+            builder.append(classNameLegalCurrent).append('\n');
           }
         }
 
