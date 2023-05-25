@@ -5,10 +5,7 @@ import zombie.Lua.LuaManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class Candle {
 
@@ -31,7 +28,9 @@ class Candle {
   void saveGlobalAPI(File dir) {
     CandleClass candleGlobalObject = this.graph.classes.get(LuaManager.GlobalObject.class);
     Map<String, CandleExecutableCluster<CandleMethod>> methods =
-        candleGlobalObject.getStaticMethods();
+        new HashMap<>(candleGlobalObject.getStaticMethods());
+    methods.putAll(candleGlobalObject.getMethods());
+
     List<String> keysSorted = new ArrayList<>(methods.keySet());
     keysSorted.sort(Comparator.naturalOrder());
     StringBuilder builder = new StringBuilder();
@@ -43,16 +42,19 @@ class Candle {
               cluster
                   .getRenderedCode()
                   .replaceAll("GlobalObject.", "")
-                  .replaceAll("--- @public\n--- @static\n", ""))
+                  .replaceAll("--- @public\n", "")
+                  .replaceAll("--- @static\n", ""))
           .append("\n");
     }
     System.out.println("Candle: Writing __global.lua ..");
-    CandleGraph.write(new File(dir, "__global.lua"), builder.toString());
+    CandleGraph.write(new File(dir, "__global.lua"), "--- @meta\n" + builder);
   }
 
   public void saveJavaAPI(File dir) {
     String fileContents =
         """
+        --- @meta
+
         --- @alias byte number
         --- @alias short number
         --- @alias int number

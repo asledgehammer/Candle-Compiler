@@ -3,6 +3,7 @@ package com.asledgehammer.candle;
 import com.asledgehammer.candle.yamldoc.YamlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import se.krka.kahlua.integration.annotations.LuaMethod;
 import zombie.Lua.LuaManager;
 
 import java.io.File;
@@ -118,6 +119,10 @@ public class CandleClass extends CandleEntity<CandleClass> {
       if (!candleMethod.isPublic()) continue;
 
       String methodName = method.getName();
+      LuaMethod annotation = method.getAnnotation(LuaMethod.class);
+      if(annotation != null) {
+        methodName = annotation.name();
+      }
 
       // Attempt to grab the cluster. If it doesn't exist, create one.
       CandleExecutableCluster<CandleMethod> cluster;

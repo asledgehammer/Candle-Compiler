@@ -5,6 +5,7 @@ import com.asledgehammer.candle.yamldoc.YamlMethod;
 import com.asledgehammer.candle.yamldoc.YamlParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import se.krka.kahlua.integration.annotations.LuaMethod;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -13,10 +14,18 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   private final Method method;
   private YamlMethod yaml;
+  private String luaName;
 
   public CandleMethod(@NotNull Method method) {
     super(method);
     this.method = method;
+
+    LuaMethod annotation = method.getAnnotation(LuaMethod.class);
+    if(annotation != null) {
+      this.luaName = annotation.name();
+    } else {
+      this.luaName = method.getName();
+    }
   }
 
   @Override
@@ -43,6 +52,12 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   @Nullable
   public YamlMethod getYaml() {
     return this.yaml;
+  }
+
+  @NotNull
+  @Override
+  public String getLuaName() {
+    return this.luaName;
   }
 
   public Class<?> getReturnType() {

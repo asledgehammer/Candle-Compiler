@@ -237,6 +237,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           builder.append(' ').append(yaml.getNotes());
       }
       builder.append('\n');
+      builder.append("--- @field public class any\n");
 
       Class<?> clazz = candleClass.getClazz();
       Class<?>[] interfazes = clazz.getInterfaces();

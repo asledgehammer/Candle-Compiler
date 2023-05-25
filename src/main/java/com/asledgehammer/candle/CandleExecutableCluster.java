@@ -20,13 +20,13 @@ public class CandleExecutableCluster<C extends CandleExecutable<?, ?>>
   }
 
   public void add(C executable) {
-    if (!executable.getLuaName().equals(getLuaName())) {
-      throw new IllegalArgumentException(
-          "Executable '"
-              + executable.getLuaName()
-              + "' does not match the first method name: "
-              + this.getLuaName());
-    }
+//    if (!executable.getLuaName().equals(getLuaName())) {
+//      throw new IllegalArgumentException(
+//          "Executable '"
+//              + executable.getLuaName()
+//              + "' does not match the first method name: "
+//              + this.getLuaName());
+//    }
     executables.add(executable);
   }
 
