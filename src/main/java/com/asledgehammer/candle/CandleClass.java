@@ -115,8 +115,8 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
       CandleMethod candleMethod = new CandleMethod(method);
 
-      // (Only digest public methods)
-      if (!candleMethod.isPublic()) continue;
+      // (Only digest public or exposed methods)
+      if (!candleMethod.isExposed() && !candleMethod.isPublic()) continue;
 
       String methodName = method.getName();
       LuaMethod annotation = method.getAnnotation(LuaMethod.class);

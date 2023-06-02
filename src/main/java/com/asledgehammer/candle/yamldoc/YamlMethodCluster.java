@@ -29,7 +29,8 @@ public class YamlMethodCluster {
         boolean invalid = false;
         for (int i = 0; i < parameters.length; i++) {
           YamlParameter parameter = parameters[i];
-          if (!parameter.type.equals(clazzes[i].getSimpleName())) {
+          if (!parameter.type.equals(clazzes[i].getSimpleName())
+              && !parameter.type.equals(clazzes[i].getName())) {
             invalid = true;
             break;
           }

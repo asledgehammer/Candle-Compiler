@@ -15,13 +15,15 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   private final Method method;
   private YamlMethod yaml;
   private String luaName;
+  private final boolean exposed;
 
   public CandleMethod(@NotNull Method method) {
     super(method);
     this.method = method;
 
     LuaMethod annotation = method.getAnnotation(LuaMethod.class);
-    if(annotation != null) {
+    this.exposed = annotation != null;
+    if (exposed) {
       this.luaName = annotation.name();
     } else {
       this.luaName = method.getName();
@@ -62,5 +64,9 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   public Class<?> getReturnType() {
     return this.method.getReturnType();
+  }
+
+  public boolean isExposed() {
+    return this.exposed;
   }
 }
