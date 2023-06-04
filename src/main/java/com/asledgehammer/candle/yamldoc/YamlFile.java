@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+@Deprecated
 public class YamlFile extends YamlEntity {
 
   @NotNull final Map<String, YamlField> fields;

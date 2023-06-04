@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+@Deprecated
 public class YamlConstructor extends YamlExecutable {
 
     final String name;

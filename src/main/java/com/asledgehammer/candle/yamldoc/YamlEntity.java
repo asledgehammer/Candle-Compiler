@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class YamlEntity {
 
   @NotNull final Map<String, Object> raw;

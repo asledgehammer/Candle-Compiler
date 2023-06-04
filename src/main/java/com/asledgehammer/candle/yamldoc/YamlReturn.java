@@ -4,6 +4,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@Deprecated
 public class YamlReturn extends YamlEntity {
 
   @NotNull String type;

@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public abstract class YamlExecutable extends YamlEntity {
 
   @NotNull final YamlParameter[] parameters;

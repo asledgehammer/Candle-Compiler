@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Arrays;
 import java.util.Map;
 
+@Deprecated
 public class YamlMethod extends YamlExecutable {
 
   final String name;

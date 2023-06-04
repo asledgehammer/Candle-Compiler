@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 
+@Deprecated
 public class YamlField extends YamlEntity {
 
   @NotNull final String name;

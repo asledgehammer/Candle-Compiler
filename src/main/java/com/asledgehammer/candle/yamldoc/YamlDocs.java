@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated
 public class YamlDocs {
 
   static Yaml yaml = new Yaml();

@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class YamlMethodCluster {
 
   final List<YamlMethod> methods = new ArrayList<>();
