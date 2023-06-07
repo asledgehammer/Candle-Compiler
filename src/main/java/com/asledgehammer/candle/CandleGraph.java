@@ -1,7 +1,6 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlDocs;
-import zombie.iso.sprite.IsoSprite;
+import com.asledgehammer.rosetta.Rosetta;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,12 +15,12 @@ public class CandleGraph {
   final List<CandleClass> classesSorted = new ArrayList<>();
   final CandleClassBag classBag = new CandleClassBag();
 
-  final YamlDocs docs = new YamlDocs();
+  final Rosetta docs = new Rosetta();
 
   public void walk() {
 
     try {
-      docs.addDirectory(new File("./docs"));
+      docs.addDirectory(new File("./rosetta/json/"));
     } catch (Exception e) {
       e.printStackTrace();
     }
@@ -125,8 +124,12 @@ public class CandleGraph {
     return this.classBag.getClasses().contains(clazz);
   }
 
-  public YamlDocs getDocs() {
+  public Rosetta getDocs() {
     return this.docs;
+  }
+
+  public boolean hasDocs() {
+    return this.docs != null;
   }
 
   public static void write(File file, String content) {

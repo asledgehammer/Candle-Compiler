@@ -1,8 +1,8 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlFile;
-import com.asledgehammer.candle.yamldoc.YamlMethod;
-import com.asledgehammer.candle.yamldoc.YamlParameter;
+import com.asledgehammer.rosetta.RosettaClass;
+import com.asledgehammer.rosetta.RosettaMethod;
+import com.asledgehammer.rosetta.RosettaParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import se.krka.kahlua.integration.annotations.LuaMethod;
@@ -13,12 +13,15 @@ import java.util.List;
 public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   private final Method method;
-  private YamlMethod yaml;
-  private String luaName;
+  private final CandleClass candleClass;
+  private RosettaMethod docs;
+  private final String luaName;
   private final boolean exposed;
 
-  public CandleMethod(@NotNull Method method) {
+  public CandleMethod(@NotNull CandleClass candleClass, @NotNull Method method) {
     super(method);
+
+    this.candleClass = candleClass;
     this.method = method;
 
     LuaMethod annotation = method.getAnnotation(LuaMethod.class);
@@ -34,15 +37,14 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   void onWalk(@NotNull CandleGraph graph) {
     super.onWalk(graph);
 
-    String path = method.getDeclaringClass().getName();
-    YamlFile yamlFile = graph.getDocs().getFile(path);
+    RosettaClass yamlFile = candleClass.getDocs();
     if (yamlFile != null) {
-      yaml = yamlFile.getMethod(method);
-      if (yaml != null && hasParameters()) {
-        YamlParameter[] yamlParameters = yaml.getParameters();
+      docs = yamlFile.getMethod(method);
+      if (docs != null && hasParameters()) {
+        List<RosettaParameter> yamlParameters = docs.getParameters();
         List<CandleParameter> parameters = getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-          parameters.get(i).yaml = yamlParameters[i];
+          parameters.get(i).docs = yamlParameters.get(i);
         }
       }
     }
@@ -52,8 +54,12 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   }
 
   @Nullable
-  public YamlMethod getYaml() {
-    return this.yaml;
+  public RosettaMethod getDocs() {
+    return this.docs;
+  }
+
+  public boolean hasDocs() {
+    return this.docs != null;
   }
 
   @NotNull

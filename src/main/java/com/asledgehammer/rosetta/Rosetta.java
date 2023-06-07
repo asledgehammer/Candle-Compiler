@@ -3,6 +3,7 @@ package com.asledgehammer.rosetta;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import se.krka.kahlua.integration.annotations.LuaMethod;
 import zombie.Lua.LuaManager;
 
 import java.io.File;
@@ -11,7 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "unused"})
 public class Rosetta {
 
   private static final Gson gson = new Gson();
@@ -78,7 +79,7 @@ public class Rosetta {
     return namespace.getClass(clazz);
   }
 
-  public void printNamespaceNames(@NotNull String prefix) {
+  public void printNamespaces(@NotNull String prefix) {
     final List<String> namespaceNames = new ArrayList<>(namespaces.keySet());
     namespaceNames.sort(Comparator.naturalOrder());
     System.out.println(prefix + "Namespace(s) Loaded: (size: " + namespaceNames.size() + ")");
@@ -103,9 +104,9 @@ public class Rosetta {
   public static void main(String[] yargs) throws IOException {
     final Rosetta rosetta = new Rosetta();
     rosetta.addDirectory(new File("./rosetta/json/"));
-    rosetta.printNamespaceNames("");
+    rosetta.printNamespaces("");
 
-    final RosettaClass classGlobalObject = rosetta.getClass(LuaManager.GlobalObject.class);
-    System.out.println(classGlobalObject);
+    RosettaClass clazz = rosetta.getClass(LuaManager.GlobalObject.class);
+    clazz.printClass("");
   }
 }

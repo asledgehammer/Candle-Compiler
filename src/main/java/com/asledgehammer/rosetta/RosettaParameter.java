@@ -14,12 +14,12 @@ public class RosettaParameter extends RosettaEntity {
   RosettaParameter(Map<String, Object> raw) {
     super(raw);
 
-    this.name = readRequiredString("name");
+    this.name = RosettaUtils.formatName(readRequiredString("name"));
     if (!raw.containsKey("type")) {
       throw new RuntimeException("The returns does not have a defined type.");
     }
     this.type = new RosettaType((Map<String, Object>) raw.get("type"));
-    this.notes = readString("notes");
+    this.notes = readNotes();
   }
 
   @Override

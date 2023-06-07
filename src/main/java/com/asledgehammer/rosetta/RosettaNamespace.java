@@ -26,7 +26,8 @@ public class RosettaNamespace extends RosettaEntity {
       }
       Map<String, Object> rawClazz = (Map<String, Object>) raw.get(clazzName);
       RosettaClass clazz = new RosettaClass(clazzName, rawClazz);
-      this.classes.put(clazzName, clazz);
+      // (Formatted Class Name)
+      this.classes.put(clazz.getName(), clazz);
     }
   }
 

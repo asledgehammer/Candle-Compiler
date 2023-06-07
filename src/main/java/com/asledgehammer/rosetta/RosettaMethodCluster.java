@@ -49,4 +49,12 @@ public class RosettaMethodCluster {
   public String toString() {
     return "RosettaMethodCluster{" + "methods=" + methods + ", name='" + name + '\'' + '}';
   }
+
+  public List<RosettaMethod> getMethods() {
+    return this.methods;
+  }
+
+  public String getName() {
+    return this.name;
+  }
 }

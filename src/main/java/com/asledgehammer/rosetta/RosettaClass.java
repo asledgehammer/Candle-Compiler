@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "unused"})
 public class RosettaClass extends RosettaEntity {
   private final Map<String, RosettaMethodCluster> methods = new HashMap<>();
   private final Map<String, RosettaField> fields = new HashMap<>();
@@ -24,12 +24,12 @@ public class RosettaClass extends RosettaEntity {
     super(raw);
 
     /* CLASS PROPERTIES */
-    this.name = name;
+    this.name = RosettaUtils.formatName(name);
     this.__extends = readString("extends");
     this.modifiers = this.readModifiers();
     this.deprecated = readBoolean("deprecated") != null;
     this.javaType = readRequiredString("javaType");
-    this.notes = readString("notes");
+    this.notes = readNotes();
 
     /* FIELDS */
     if (raw.containsKey("fields")) {
@@ -48,6 +48,9 @@ public class RosettaClass extends RosettaEntity {
       for (Map<String, Object> rawMethod : list) {
         RosettaMethod method = new RosettaMethod(rawMethod);
         String methodName = method.getName();
+        if (methodName.equals("triggerEvent")) {
+          System.out.println(method.asJavaString("### "));
+        }
         RosettaMethodCluster cluster;
         if (methods.containsKey(methodName)) {
           cluster = methods.get(methodName);
@@ -163,6 +166,32 @@ public class RosettaClass extends RosettaEntity {
   @Nullable
   public String getNotes() {
     return notes;
+  }
+
+  public void printClass(String prefix) {
+    System.out.println(prefix + this.javaType + " " + this.getName() + ":");
+    List<String> keys = new ArrayList<>(fields.keySet());
+    keys.sort(Comparator.naturalOrder());
+
+    System.out.println(prefix + "\tFields:");
+    for (String key : keys) {
+      System.out.println(fields.get(key).asJavaString("\t\t"));
+    }
+
+    keys = new ArrayList<>(methods.keySet());
+    keys.sort(Comparator.naturalOrder());
+    System.out.println(prefix + "\tMethods:");
+    for (String key : keys) {
+      RosettaMethodCluster cluster = methods.get(key);
+      for (RosettaMethod method : cluster.getMethods()) {
+        System.out.println(method.asJavaString("\t\t"));
+      }
+    }
+
+    System.out.println("\tConstructors:");
+    for (RosettaConstructor constructor : constructors) {
+      System.out.println(constructor.asJavaString("\t\t"));
+    }
   }
 
   @Override

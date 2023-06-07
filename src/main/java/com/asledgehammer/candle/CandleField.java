@@ -1,7 +1,7 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlField;
-import com.asledgehammer.candle.yamldoc.YamlFile;
+import com.asledgehammer.rosetta.RosettaClass;
+import com.asledgehammer.rosetta.RosettaField;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,11 +16,14 @@ public class CandleField extends CandleEntity<CandleField> {
   @NotNull private final String name;
 
   @NotNull private final Field field;
+  private final CandleClass candleClass;
 
-  @Nullable private YamlField yaml;
+  @Nullable private RosettaField docs;
 
-  CandleField(@NotNull Field field) {
+  CandleField(@NotNull CandleClass candleClass, @NotNull Field field) {
     super(field.getType(), field.getName());
+
+    this.candleClass = candleClass;
 
     int modifiers = field.getModifiers();
     this.bStatic = Modifier.isStatic(modifiers);
@@ -31,10 +34,9 @@ public class CandleField extends CandleEntity<CandleField> {
 
   @Override
   void onWalk(@NotNull CandleGraph graph) {
-    String path = field.getDeclaringClass().getName();
-    YamlFile yamlFile = graph.getDocs().getFile(path);
+    RosettaClass yamlFile = candleClass.getDocs();
     if (yamlFile != null) {
-      yaml = yamlFile.getField(field.getName());
+      docs = yamlFile.getField(field.getName());
     }
   }
 
@@ -50,11 +52,11 @@ public class CandleField extends CandleEntity<CandleField> {
     return bStatic;
   }
 
-  public YamlField getYaml() {
-    return this.yaml;
+  public RosettaField getDocs() {
+    return this.docs;
   }
 
-  public boolean hasYaml() {
-    return this.yaml != null;
+  public boolean hasDocs() {
+    return this.docs != null;
   }
 }

@@ -5,7 +5,7 @@ import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "unused"})
 public class RosettaEntity {
 
   @NotNull private final Map<String, Object> raw;
@@ -31,6 +31,13 @@ public class RosettaEntity {
   String readString(@NotNull String id) {
     if (!raw.containsKey(id)) return null;
     return raw.get(id).toString();
+  }
+
+  @Nullable
+  String readNotes() {
+    String notes = readString("notes");
+    if (notes == null) return null;
+    return notes.replaceAll("\\n", " ").replaceAll("/\\s\\s/g", " ").trim();
   }
 
   @NotNull

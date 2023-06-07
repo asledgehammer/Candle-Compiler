@@ -1,6 +1,6 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlFile;
+import com.asledgehammer.rosetta.RosettaClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import se.krka.kahlua.integration.annotations.LuaMethod;
@@ -21,7 +21,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
   private final Map<String, CandleExecutableCluster<CandleMethod>> methods = new HashMap<>();
   private CandleExecutableCluster<CandleConstructor> constructors;
 
-  @Nullable private YamlFile yaml;
+  @Nullable private RosettaClass docs;
 
   public CandleClass(@NotNull Class<?> clazz) {
     super(clazz);
@@ -30,7 +30,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
   @Override
   void onWalk(@NotNull CandleGraph graph) {
 
-    yaml = graph.getDocs().getFile(getClazz().getName());
+    this.docs = graph.getDocs().getClass(getClazz());
 
     walkFields(graph);
     walkMethods(graph);
@@ -53,7 +53,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
       if (constructors == null) {
         constructors = new CandleExecutableCluster<>("new");
       }
-      constructors.add(new CandleConstructor(jConstructor));
+      constructors.add(new CandleConstructor(this, jConstructor));
     }
 
     if (hasConstructors()) constructors.walk(graph);
@@ -62,8 +62,6 @@ public class CandleClass extends CandleEntity<CandleClass> {
   /**
    * Walks the fields and only handles fields that are public and static. (Only visible fields in
    * Kahlua)
-   *
-   * @param graph
    */
   private void walkFields(@NotNull CandleGraph graph) {
     Class<?> clazz = getClazz();
@@ -82,7 +80,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
       int modifiers = field.getModifiers();
       if (!Modifier.isPublic(modifiers)) continue;
       else if (!Modifier.isStatic(modifiers)) continue;
-      CandleField emmyField = new CandleField(field);
+      CandleField emmyField = new CandleField(this, field);
       fields.put(emmyField.getLuaName().toLowerCase(), emmyField);
     }
 
@@ -113,14 +111,14 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
     for (Method method : methods) {
 
-      CandleMethod candleMethod = new CandleMethod(method);
+      CandleMethod candleMethod = new CandleMethod(this, method);
 
       // (Only digest public or exposed methods)
       if (!candleMethod.isExposed() && !candleMethod.isPublic()) continue;
 
       String methodName = method.getName();
       LuaMethod annotation = method.getAnnotation(LuaMethod.class);
-      if(annotation != null) {
+      if (annotation != null) {
         methodName = annotation.name();
       }
 
@@ -196,7 +194,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
   }
 
   @Nullable
-  public YamlFile getYaml() {
-    return this.yaml;
+  public RosettaClass getDocs() {
+    return this.docs;
   }
 }

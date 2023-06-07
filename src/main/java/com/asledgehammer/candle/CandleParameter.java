@@ -1,6 +1,6 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlParameter;
+import com.asledgehammer.rosetta.RosettaParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,9 +9,9 @@ import java.lang.reflect.Parameter;
 public class CandleParameter extends CandleEntity<CandleParameter> {
 
   private final Parameter parameter;
-  YamlParameter yaml;
+  RosettaParameter docs;
 
-    CandleParameter(@NotNull Parameter parameter) {
+  CandleParameter(@NotNull Parameter parameter) {
     super(parameter.getType(), parameter.getName());
     this.parameter = parameter;
   }
@@ -23,14 +23,18 @@ public class CandleParameter extends CandleEntity<CandleParameter> {
   }
 
   @Nullable
-  public YamlParameter getYaml() {
-    return yaml;
+  public RosettaParameter getDocs() {
+    return docs;
+  }
+
+  public boolean hasDocs() {
+    return this.docs != null;
   }
 
   @Override
   public String getLuaName() {
-      if(yaml == null) return super.getLuaName();
-    return yaml.getName();
+    if (docs == null) return super.getLuaName();
+    return docs.getName();
   }
 
   public Parameter getJavaParameter() {
@@ -42,6 +46,6 @@ public class CandleParameter extends CandleEntity<CandleParameter> {
   }
 
   public boolean hasNotes() {
-    return yaml != null && yaml.hasNotes();
+    return docs != null && docs.hasNotes();
   }
 }

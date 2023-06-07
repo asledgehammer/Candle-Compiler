@@ -17,7 +17,7 @@ public class RosettaReturns extends RosettaEntity {
       throw new RuntimeException("The returns does not have a defined type.");
     }
     this.type = new RosettaType((Map<String, Object>) raw.get("type"));
-    this.notes = readString("notes");
+    this.notes = readNotes();
   }
 
   @Override

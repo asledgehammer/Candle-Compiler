@@ -1,8 +1,8 @@
 package com.asledgehammer.candle;
 
-import com.asledgehammer.candle.yamldoc.YamlConstructor;
-import com.asledgehammer.candle.yamldoc.YamlFile;
-import com.asledgehammer.candle.yamldoc.YamlParameter;
+import com.asledgehammer.rosetta.RosettaClass;
+import com.asledgehammer.rosetta.RosettaConstructor;
+import com.asledgehammer.rosetta.RosettaParameter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,18 +11,20 @@ import java.util.List;
 
 public class CandleConstructor extends CandleExecutable<Constructor<?>, CandleConstructor> {
 
-  @Nullable YamlConstructor yaml;
+  private final CandleClass candleClass;
+  @Nullable RosettaConstructor docs;
 
-  public CandleConstructor(@NotNull Constructor<?> executable) {
+  public CandleConstructor(@NotNull CandleClass candleClass, @NotNull Constructor<?> executable) {
     super(executable);
+
+    this.candleClass = candleClass;
   }
 
   @Override
   void onWalk(@NotNull CandleGraph graph) {
     super.onWalk(graph);
 
-    String path = executable.getDeclaringClass().getName();
-    YamlFile yamlFile = graph.getDocs().getFile(path);
+    RosettaClass yamlFile = candleClass.getDocs();
 
     if (yamlFile != null) {
       Class<?>[] cParams;
@@ -36,12 +38,12 @@ public class CandleConstructor extends CandleExecutable<Constructor<?>, CandleCo
         cParams = new Class[0];
       }
 
-      yaml = yamlFile.getConstructor(cParams);
-      if (yaml != null && hasParameters()) {
-        YamlParameter[] yamlParameters = yaml.getParameters();
+      docs = yamlFile.getConstructor(cParams);
+      if (docs != null && hasParameters()) {
+        List<RosettaParameter> yamlParameters = docs.getParameters();
         List<CandleParameter> parameters = getParameters();
         for (int i = 0; i < parameters.size(); i++) {
-          parameters.get(i).yaml = yamlParameters[i];
+          parameters.get(i).docs = yamlParameters.get(i);
         }
       }
     }
@@ -52,11 +54,12 @@ public class CandleConstructor extends CandleExecutable<Constructor<?>, CandleCo
     return "new";
   }
 
-  public YamlConstructor getYaml() {
-    return this.yaml;
+  @Nullable
+  public RosettaConstructor getDocs() {
+    return this.docs;
   }
 
-  public boolean hasYaml() {
-    return this.yaml != null;
+  public boolean hasDocs() {
+    return this.docs != null;
   }
 }
