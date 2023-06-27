@@ -91,6 +91,9 @@ public class CandleGraph {
   }
 
   public void addAlias(Class<?> clazz) {
+    // Exceptions
+    if (clazz.equals(Map.class) || clazz.equals(List.class)) return;
+
     if (isClass(clazz)) return;
     this.aliases.put(clazz, new CandleAlias(clazz));
   }

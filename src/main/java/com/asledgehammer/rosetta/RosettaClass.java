@@ -44,8 +44,8 @@ public class RosettaClass extends RosettaEntity {
 
     /* METHODS */
     if (raw.containsKey("methods")) {
-      List<Map<String, Object>> list = (List<Map<String, Object>>) raw.get("methods");
-      for (Map<String, Object> rawMethod : list) {
+      List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) raw.get("methods");
+      for (Map<String, Object> rawMethod : rawMethods) {
         RosettaMethod method = new RosettaMethod(rawMethod);
         String methodName = method.getName();
         if (methodName.equals("triggerEvent")) {
@@ -64,8 +64,9 @@ public class RosettaClass extends RosettaEntity {
 
     /* CONSTRUCTORS */
     if (raw.containsKey("constructors")) {
-      List<Map<String, Object>> list = (List<Map<String, Object>>) raw.get("constructors");
-      for (Map<String, Object> rawConstructor : list) {
+      List<Map<String, Object>> rawConstructors =
+          (List<Map<String, Object>>) raw.get("constructors");
+      for (Map<String, Object> rawConstructor : rawConstructors) {
         RosettaConstructor constructor = new RosettaConstructor(this, rawConstructor);
         constructors.add(constructor);
       }
