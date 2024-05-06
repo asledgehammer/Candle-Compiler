@@ -319,7 +319,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       lines.add(current.toString());
       current = new StringBuilder();
     }
-    if (current.length() > 0) {
+    if (!current.isEmpty()) {
       lines.add(current.toString());
     }
 
