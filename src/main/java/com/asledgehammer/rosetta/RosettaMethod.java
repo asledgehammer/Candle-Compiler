@@ -4,106 +4,132 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public class RosettaMethod extends RosettaEntity {
 
-  private final List<RosettaParameter> parameters = new ArrayList<>();
-  private final RosettaReturns returns;
-  private final String name;
-  private final String notes;
-  private final String[] modifiers;
-  private final boolean deprecated;
+    private final List<RosettaParameter> parameters = new ArrayList<>();
+    private final RosettaReturns returns;
+    private final String name;
+    private final String notes;
+    private final String[] modifiers;
+    private final boolean deprecated;
 
-  RosettaMethod(@NotNull Map<String, Object> raw) {
-    super(raw);
+    RosettaMethod(@NotNull Map<String, Object> raw) {
+        super(raw);
 
-    /* PROPERTIES */
-    this.name = RosettaUtils.formatName(readRequiredString("name"));
-    this.notes = readNotes();
-    this.deprecated = readBoolean("deprecated") != null;
-    this.modifiers = readModifiers();
+        /* PROPERTIES */
+        this.name = RosettaUtils.formatName(readRequiredString("name"));
+        this.notes = readNotes();
+        this.deprecated = readBoolean("deprecated") != null;
+        this.modifiers = readModifiers();
 
-    /* PARAMETERS */
-    if (raw.containsKey("parameters")) {
-      List<Map<String, Object>> rawParameters = (List<Map<String, Object>>) raw.get("parameters");
-      for (Map<String, Object> rawParameter : rawParameters) {
-        RosettaParameter parameter = new RosettaParameter(rawParameter);
-        parameters.add(parameter);
-      }
+        /* PARAMETERS */
+        if (raw.containsKey("parameters")) {
+            List<Map<String, Object>> rawParameters = (List<Map<String, Object>>) raw.get("parameters");
+            for (Map<String, Object> rawParameter : rawParameters) {
+                RosettaParameter parameter = new RosettaParameter(rawParameter);
+                parameters.add(parameter);
+            }
+        }
+
+        /* RETURNS */
+        if (!raw.containsKey("returns")) {
+            throw new RuntimeException("Method does not have returns definition: " + this.name);
+        }
+        this.returns = new RosettaReturns((Map<String, Object>) raw.get("returns"));
     }
 
-    /* RETURNS */
-    if (!raw.containsKey("returns")) {
-      throw new RuntimeException("Method does not have returns definition: " + this.name);
-    }
-    this.returns = new RosettaReturns((Map<String, Object>) raw.get("returns"));
-  }
-
-  @NotNull
-  public String asJavaString(@NotNull String prefix) {
-    StringBuilder stringBuilder = new StringBuilder(prefix);
-    String[] modifiers = this.getModifiers();
-    if (modifiers.length != 0) {
-      for (String modifier : this.getModifiers()) {
-        stringBuilder.append(modifier).append(' ');
-      }
-    }
-    stringBuilder
-        .append(this.getReturns().getType().getBasic())
-        .append(' ')
-        .append(this.getName())
-        .append('(');
-    List<RosettaParameter> parameters = this.getParameters();
-    if (!parameters.isEmpty()) {
-      for (RosettaParameter parameter : parameters) {
+    @NotNull
+    public String asJavaString(@NotNull String prefix) {
+        StringBuilder stringBuilder = new StringBuilder(prefix);
+        String[] modifiers = this.getModifiers();
+        if (modifiers.length != 0) {
+            for (String modifier : this.getModifiers()) {
+                stringBuilder.append(modifier).append(' ');
+            }
+        }
         stringBuilder
-            .append(parameter.getType().getBasic())
-            .append(' ')
-            .append(parameter.getName())
-            .append(", ");
-      }
-      stringBuilder = new StringBuilder(stringBuilder.substring(0, stringBuilder.length() - 2));
+                .append(this.getReturns().getType().getBasic())
+                .append(' ')
+                .append(this.getName())
+                .append('(');
+        List<RosettaParameter> parameters = this.getParameters();
+        if (!parameters.isEmpty()) {
+            for (RosettaParameter parameter : parameters) {
+                stringBuilder
+                        .append(parameter.getType().getBasic())
+                        .append(' ')
+                        .append(parameter.getName())
+                        .append(", ");
+            }
+            stringBuilder = new StringBuilder(stringBuilder.substring(0, stringBuilder.length() - 2));
+        }
+        stringBuilder.append(')');
+        return stringBuilder.toString();
     }
-    stringBuilder.append(')');
-    return stringBuilder.toString();
-  }
 
-  @NotNull
-  public List<RosettaParameter> getParameters() {
-    return this.parameters;
-  }
+    @NotNull
+    public Map<String, Object> toJSON() {
+        Map<String, Object> mapMethod = new HashMap<>();
 
-  public boolean hasParameters() {
-    return !this.parameters.isEmpty();
-  }
+        // NAME
+        mapMethod.put("name", this.getName());
 
-  @NotNull
-  public String getName() {
-    return this.name;
-  }
+        // PARAMETERS
+        if (!this.parameters.isEmpty()) {
+            List<Map<String, Object>> mapParameters = new ArrayList<>();
+            for (RosettaParameter parameter : this.parameters) {
+                mapParameters.add(parameter.toJSON());
+            }
+            mapMethod.put("parameters", mapParameters);
+        }
 
-  @NotNull
-  public RosettaReturns getReturns() {
-    return this.returns;
-  }
+        // RETURNS
+        mapMethod.put("returns", this.returns.toJSON());
 
-  @Nullable
-  public String getNotes() {
-    return this.notes;
-  }
+        // NOTES
+        mapMethod.put("notes", this.notes);
 
-  public boolean hasNotes() {
-    return this.notes != null;
-  }
+        return mapMethod;
+    }
 
-  public boolean isDeprecated() {
-    return this.deprecated;
-  }
+    @NotNull
+    public List<RosettaParameter> getParameters() {
+        return this.parameters;
+    }
 
-  public String[] getModifiers() {
-    return this.modifiers;
-  }
+    public boolean hasParameters() {
+        return !this.parameters.isEmpty();
+    }
+
+    @NotNull
+    public String getName() {
+        return this.name;
+    }
+
+    @NotNull
+    public RosettaReturns getReturns() {
+        return this.returns;
+    }
+
+    @Nullable
+    public String getNotes() {
+        return this.notes;
+    }
+
+    public boolean hasNotes() {
+        return this.notes != null;
+    }
+
+    public boolean isDeprecated() {
+        return this.deprecated;
+    }
+
+    public String[] getModifiers() {
+        return this.modifiers;
+    }
 }

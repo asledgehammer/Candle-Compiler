@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("unchecked")
@@ -41,6 +42,15 @@ public class RosettaField extends RosettaEntity {
     }
     stringBuilder.append(this.getType().getBasic()).append(' ').append(getName());
     return stringBuilder.toString();
+  }
+
+  public Map<String, Object> toJSON() {
+    Map<String, Object> mapField = new HashMap<>();
+    mapField.put("modifiers", this.modifiers);
+    mapField.put("notes", this.notes);
+    mapField.put("deprecated", this.deprecated);
+    mapField.put("type", this.type.toJSON());
+    return mapField;
   }
 
   @NotNull

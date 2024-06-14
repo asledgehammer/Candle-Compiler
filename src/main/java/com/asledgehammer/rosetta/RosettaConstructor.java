@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,6 +65,25 @@ public class RosettaConstructor extends RosettaEntity {
     }
     stringBuilder.append(')');
     return stringBuilder.toString();
+  }
+
+  @NotNull
+  public Map<String, Object> toJSON() {
+    Map<String, Object> mapMethod = new HashMap<>();
+
+    // PARAMETERS
+    if (!this.parameters.isEmpty()) {
+      List<Map<String, Object>> mapParameters = new ArrayList<>();
+      for (RosettaParameter parameter : this.parameters) {
+        mapParameters.add(parameter.toJSON());
+      }
+      mapMethod.put("parameters", mapParameters);
+    }
+
+    // NOTES
+    mapMethod.put("notes", this.notes);
+
+    return mapMethod;
   }
 
   @NotNull

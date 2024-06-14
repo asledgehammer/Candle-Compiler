@@ -8,71 +8,73 @@ import org.jetbrains.annotations.Nullable;
 import se.krka.kahlua.integration.annotations.LuaMethod;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
-  private final Method method;
-  private final CandleClass candleClass;
-  private RosettaMethod docs;
-  private final String luaName;
-  private final boolean exposed;
+    private final Method method;
+    private final CandleClass candleClass;
+    private RosettaMethod docs;
+    private final String luaName;
+    private final boolean exposed;
 
-  public CandleMethod(@NotNull CandleClass candleClass, @NotNull Method method) {
-    super(method);
+    public CandleMethod(@NotNull CandleClass candleClass, @NotNull Method method) {
+        super(method);
 
-    this.candleClass = candleClass;
-    this.method = method;
+        this.candleClass = candleClass;
+        this.method = method;
 
-    LuaMethod annotation = method.getAnnotation(LuaMethod.class);
-    this.exposed = annotation != null;
-    if (exposed) {
-      this.luaName = annotation.name();
-    } else {
-      this.luaName = method.getName();
-    }
-  }
-
-  @Override
-  void onWalk(@NotNull CandleGraph graph) {
-    super.onWalk(graph);
-
-    RosettaClass yamlFile = candleClass.getDocs();
-    if (yamlFile != null) {
-      docs = yamlFile.getMethod(method);
-      if (docs != null && hasParameters()) {
-        List<RosettaParameter> yamlParameters = docs.getParameters();
-        List<CandleParameter> parameters = getParameters();
-        for (int i = 0; i < parameters.size(); i++) {
-          parameters.get(i).docs = yamlParameters.get(i);
+        LuaMethod annotation = method.getAnnotation(LuaMethod.class);
+        this.exposed = annotation != null;
+        if (exposed) {
+            this.luaName = annotation.name();
+        } else {
+            this.luaName = method.getName();
         }
-      }
     }
 
-    // If not an exposed class, attempt to add as alias.
-    graph.evaluate(getReturnType());
-  }
+    @Override
+    void onWalk(@NotNull CandleGraph graph) {
+        super.onWalk(graph);
 
-  @Nullable
-  public RosettaMethod getDocs() {
-    return this.docs;
-  }
+        RosettaClass yamlFile = candleClass.getDocs();
+        if (yamlFile != null) {
+            docs = yamlFile.getMethod(method);
+            if (docs != null && hasParameters()) {
+                List<RosettaParameter> yamlParameters = docs.getParameters();
+                List<CandleParameter> parameters = getParameters();
+                for (int i = 0; i < parameters.size(); i++) {
+                    parameters.get(i).docs = yamlParameters.get(i);
+                }
+            }
+        }
 
-  public boolean hasDocs() {
-    return this.docs != null;
-  }
+        // If not an exposed class, attempt to add as alias.
+        graph.evaluate(getReturnType());
+    }
 
-  @NotNull
-  @Override
-  public String getLuaName() {
-    return this.luaName;
-  }
+    @Nullable
+    public RosettaMethod getDocs() {
+        return this.docs;
+    }
 
-  public Class<?> getReturnType() {
-    return this.method.getReturnType();
-  }
+    public boolean hasDocs() {
+        return this.docs != null;
+    }
 
-  public boolean isExposed() {
-    return this.exposed;
-  }
+    @NotNull
+    @Override
+    public String getLuaName() {
+        return this.luaName;
+    }
+
+    public Class<?> getReturnType() {
+        return this.method.getReturnType();
+    }
+
+    public boolean isExposed() {
+        return this.exposed;
+    }
 }
