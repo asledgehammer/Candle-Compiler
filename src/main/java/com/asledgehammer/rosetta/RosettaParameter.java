@@ -13,7 +13,7 @@ public class RosettaParameter extends RosettaEntity {
     @NotNull RosettaType type;
     @Nullable String notes;
 
-    RosettaParameter(Map<String, Object> raw) {
+    public RosettaParameter(Map<String, Object> raw) {
         super(raw);
 
         this.name = RosettaUtils.formatName(readRequiredString("name"));

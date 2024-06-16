@@ -3,9 +3,7 @@ package com.asledgehammer.rosetta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class RosettaField extends RosettaEntity {
@@ -46,10 +44,26 @@ public class RosettaField extends RosettaEntity {
 
   public Map<String, Object> toJSON() {
     Map<String, Object> mapField = new HashMap<>();
-    mapField.put("modifiers", this.modifiers);
-    mapField.put("notes", this.notes);
-    mapField.put("deprecated", this.deprecated);
+
+    // NAME
+    mapField.put("name", getName());
+
+    // MODIFIERS
+    if(this.modifiers.length != 0) {
+      List<String> listModifiers = new ArrayList<>();
+      Collections.addAll(listModifiers, getModifiers());
+      mapField.put("modifiers", listModifiers);
+    }
+
+    // TYPE
     mapField.put("type", this.type.toJSON());
+
+    // DEPRECATED FLAG
+    mapField.put("deprecated", this.deprecated);
+
+    // NOTES
+    mapField.put("notes", this.notes);
+
     return mapField;
   }
 

@@ -1,5 +1,6 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.rosetta.Rosetta;
 import com.asledgehammer.rosetta.RosettaClass;
 import com.asledgehammer.rosetta.RosettaField;
 import org.jetbrains.annotations.NotNull;
@@ -7,7 +8,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CandleField extends CandleEntity<CandleField> {
 
@@ -74,7 +78,19 @@ public class CandleField extends CandleEntity<CandleField> {
         return bStatic;
     }
 
+    public String getBasicType() {
+        return CandleUtils.asBasicType(CandleUtils.getFullType(this.field));
+    }
+
+    public String getFullType() {
+        return CandleUtils.getFullType(this.field);
+    }
+
+    @NotNull
     public RosettaField getDocs() {
+        if (this.docs == null) {
+            this.docs = new RosettaField(this.getLuaName(), this.genDocs());
+        }
         return this.docs;
     }
 
@@ -82,31 +98,38 @@ public class CandleField extends CandleEntity<CandleField> {
         return this.docs != null;
     }
 
-    public String getBasicType() {
-        StringBuilder basicType = new StringBuilder(this.field.getType().getSimpleName());
-        ParameterizedType stringListType = (ParameterizedType) this.field.getGenericType();
-        Class<?>[] genericArgs = (Class<?>[]) stringListType.getActualTypeArguments();
-        if (genericArgs.length != 0) {
-            basicType.append('<');
-            for (Class<?> genericArg : genericArgs) {
-                basicType.append(genericArg.getSimpleName()).append(", ");
-            }
-            basicType = new StringBuilder(basicType.substring(0, basicType.length() - 2) + '>');
+    public boolean isDocsValid() {
+        if (this.docs == null) return false;
+        if (this.docs.getType().hasFull()) {
+            return this.docs.getType().matches(this.getFullType(), this.getBasicType());
+        } else {
+            return this.docs.getType().matches(this.getBasicType());
         }
-        return basicType.toString();
     }
 
-    public String getFullType() {
-        StringBuilder basicType = new StringBuilder(this.field.getType().getName());
-        ParameterizedType stringListType = (ParameterizedType) this.field.getGenericType();
-        Class<?>[] genericArgs = (Class<?>[]) stringListType.getActualTypeArguments();
-        if (genericArgs.length != 0) {
-            basicType.append('<');
-            for (Class<?> genericArg : genericArgs) {
-                basicType.append(genericArg.getName()).append(", ");
-            }
-            basicType = new StringBuilder(basicType.substring(0, basicType.length() - 2) + '>');
-        }
-        return basicType.toString();
+    @NotNull
+    public Map<String, Object> genDocs() {
+
+        System.out.println("Field.genDocs(): " + getLuaName());
+
+        Map<String, Object> mapField = new HashMap<>();
+
+        // MODIFIERS
+        List<String> listModifiers = new ArrayList<>();
+        if (this.isPublic()) listModifiers.add("public");
+        else if (this.isProtected()) listModifiers.add("protected");
+        else if (this.isPrivate()) listModifiers.add("private");
+        if (this.isStatic()) listModifiers.add("static");
+        if (this.isFinal()) listModifiers.add("final");
+        mapField.put("modifiers", listModifiers);
+
+        // TYPE
+        Map<String, Object> mapType = new HashMap<>();
+        mapType.put("basic", this.getBasicType());
+        mapType.put("full", this.getFullType());
+        mapType.put("nullable", true);
+        mapField.put("type", mapType);
+
+        return mapField;
     }
 }

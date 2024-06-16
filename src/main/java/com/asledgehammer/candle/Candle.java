@@ -1,6 +1,7 @@
 package com.asledgehammer.candle;
 
 import com.asledgehammer.candle.impl.EmmyLuaRenderer;
+import com.asledgehammer.candle.impl.RosettaRenderer;
 import zombie.Lua.LuaManager;
 
 import java.io.File;
@@ -95,7 +96,13 @@ class Candle {
 
     Candle candle = new Candle();
     candle.walk();
-    candle.render(new EmmyLuaRenderer());
-    candle.save(dir);
+
+    RosettaRenderer renderer = new RosettaRenderer();
+    candle.render(renderer);
+
+    renderer.saveJSON(candle.graph, new File("./dist2/"));
+
+//    candle.render(new EmmyLuaRenderer());
+//    candle.save(dir);
   }
 }

@@ -20,7 +20,7 @@ public class RosettaClass extends RosettaEntity {
     private final String notes;
     private final boolean deprecated;
 
-    RosettaClass(@NotNull String name, @NotNull Map<String, Object> raw) {
+    public RosettaClass(@NotNull String name, @NotNull Map<String, Object> raw) {
         super(raw);
 
         /* CLASS PROPERTIES */
@@ -226,6 +226,13 @@ public class RosettaClass extends RosettaEntity {
     public Map<String, Object> toJSON() {
         Map<String, Object> mapClass = new HashMap<>();
 
+        // MODIFIERS
+        if(this.modifiers.length != 0) {
+            List<String> listModifiers = new ArrayList<>();
+            Collections.addAll(listModifiers, getModifiers());
+            mapClass.put("modifiers", listModifiers);
+        }
+
         // FIELDS
         if (!this.fields.isEmpty()) {
             Map<String, Object> mapFields = new HashMap<>();
@@ -262,15 +269,11 @@ public class RosettaClass extends RosettaEntity {
             mapClass.put("methods", listMethods);
         }
 
+        // JAVATYPE
+        mapClass.put("javaType", this.javaType);
+
         // EXTENDS
         mapClass.put("extends", this.__extends);
-
-        // MODIFIERS
-        if (this.modifiers.length != 0) {
-            List<String> listModifiers = new ArrayList<>();
-            Collections.addAll(listModifiers, this.modifiers);
-            mapClass.put("modifiers", listModifiers);
-        }
 
         // DEPRECATED
         if (this.deprecated) {

@@ -5,47 +5,87 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Parameter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CandleParameter extends CandleEntity<CandleParameter> {
 
-  private final Parameter parameter;
-  RosettaParameter docs;
+    private final Parameter parameter;
+    RosettaParameter docs;
 
-  CandleParameter(@NotNull Parameter parameter) {
-    super(parameter.getType(), parameter.getName());
-    this.parameter = parameter;
-  }
+    CandleParameter(@NotNull Parameter parameter) {
+        super(parameter.getType(), parameter.getName());
+        this.parameter = parameter;
+    }
 
-  @Override
-  void onWalk(@NotNull CandleGraph graph) {
-    // If not an exposed class, attempt to add as alias.
-    graph.evaluate(parameter.getType());
-  }
+    @Override
+    void onWalk(@NotNull CandleGraph graph) {
+        // If not an exposed class, attempt to add as alias.
+        graph.evaluate(parameter.getType());
+    }
 
-  @Nullable
-  public RosettaParameter getDocs() {
-    return docs;
-  }
+    @Override
+    public String getLuaName() {
+        if (docs == null) return super.getLuaName();
+        return docs.getName();
+    }
 
-  public boolean hasDocs() {
-    return this.docs != null;
-  }
+    public Parameter getJavaParameter() {
+        return this.parameter;
+    }
 
-  @Override
-  public String getLuaName() {
-    if (docs == null) return super.getLuaName();
-    return docs.getName();
-  }
+    public boolean isVarArgs() {
+        return parameter.isVarArgs();
+    }
 
-  public Parameter getJavaParameter() {
-    return this.parameter;
-  }
+    public boolean hasNotes() {
+        return docs != null && docs.hasNotes();
+    }
 
-  public boolean isVarArgs() {
-    return parameter.isVarArgs();
-  }
+    public String getFullType() {
+        return CandleUtils.getFullParameterType(this.parameter);
+    }
 
-  public boolean hasNotes() {
-    return docs != null && docs.hasNotes();
-  }
+    public String getBasicType() {
+        return CandleUtils.asBasicType(this.getFullType());
+    }
+
+    public boolean isDocsValid() {
+        if (this.docs == null) return false;
+        if (this.docs.getType().hasFull()) {
+            return this.docs.getType().matches(this.getFullType(), this.getBasicType());
+        } else {
+            return this.docs.getType().matches(this.getBasicType());
+        }
+    }
+
+    @NotNull
+    public RosettaParameter getDocs() {
+        if(this.docs == null) {
+            this.docs = new RosettaParameter(this.genDocs());
+        }
+        return docs;
+    }
+
+    public boolean hasDocs() {
+        return this.docs != null;
+    }
+
+    public Map<String, Object> genDocs() {
+
+        System.out.println("Parameter.genDocs(): " + getLuaName());
+
+        Map<String, Object> mapParameter = new HashMap<>();
+
+        // NAME
+        mapParameter.put("name", this.getLuaName());
+
+        // TYPE
+        Map<String, Object> mapType = new HashMap<>();
+        mapType.put("basic", this.getBasicType());
+        mapType.put("full", this.getFullType());
+        mapParameter.put("type", mapType);
+
+        return mapParameter;
+    }
 }

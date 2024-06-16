@@ -3,10 +3,7 @@ package com.asledgehammer.rosetta;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("unchecked")
 public class RosettaMethod extends RosettaEntity {
@@ -18,7 +15,7 @@ public class RosettaMethod extends RosettaEntity {
     private final String[] modifiers;
     private final boolean deprecated;
 
-    RosettaMethod(@NotNull Map<String, Object> raw) {
+    public RosettaMethod(@NotNull Map<String, Object> raw) {
         super(raw);
 
         /* PROPERTIES */
@@ -78,6 +75,13 @@ public class RosettaMethod extends RosettaEntity {
 
         // NAME
         mapMethod.put("name", this.getName());
+
+        // MODIFIERS
+        if(this.modifiers.length != 0) {
+            List<String> listModifiers = new ArrayList<>();
+            Collections.addAll(listModifiers, getModifiers());
+            mapMethod.put("modifiers", listModifiers);
+        }
 
         // PARAMETERS
         if (!this.parameters.isEmpty()) {

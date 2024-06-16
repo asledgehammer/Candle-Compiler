@@ -10,10 +10,10 @@ import java.util.*;
 public class CandleGraph {
 
   final Map<Class<?>, CandleAlias> aliases = new HashMap<>();
-  final Map<Class<?>, CandleClass> classes = new HashMap<>();
-  final List<CandleAlias> aliasesSorted = new ArrayList<>();
-  final List<CandleClass> classesSorted = new ArrayList<>();
-  final CandleClassBag classBag = new CandleClassBag();
+  public final Map<Class<?>, CandleClass> classes = new HashMap<>();
+  public final List<CandleAlias> aliasesSorted = new ArrayList<>();
+  public final List<CandleClass> classesSorted = new ArrayList<>();
+  public final CandleClassBag classBag = new CandleClassBag();
 
   final Rosetta docs = new Rosetta();
 

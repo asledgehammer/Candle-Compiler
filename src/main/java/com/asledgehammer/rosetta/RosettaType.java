@@ -73,4 +73,12 @@ public class RosettaType extends RosettaEntity {
             default -> true;
         };
     }
+
+    public boolean matches(String basicType) {
+        return basicType.equals(this.basic);
+    }
+
+    public boolean matches(String fullType, String basicType) {
+        return basicType.equals(this.basic) && fullType.equals(this.full);
+    }
 }
