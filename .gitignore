@@ -9,5 +9,5 @@ dist
 bin
 **/.DS_Store
 docs/
-rosetta/
+/rosetta/
 dist2/
