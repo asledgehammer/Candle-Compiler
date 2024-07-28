@@ -110,7 +110,7 @@ public class CandleField extends CandleEntity<CandleField> {
     @NotNull
     public Map<String, Object> genDocs() {
 
-        System.out.println("Field.genDocs(): " + getLuaName());
+//        System.out.println("Field.genDocs(): " + getLuaName());
 
         Map<String, Object> mapField = new HashMap<>();
 

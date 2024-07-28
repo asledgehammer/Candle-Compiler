@@ -17,7 +17,7 @@ public class LuaWizard {
         if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
         Candle candle = new Candle();
-        candle.walk();
+        candle.walk(true);
 
         KnownTypeRenderer renderer = new KnownTypeRenderer();
         candle.render(renderer);
@@ -27,5 +27,7 @@ public class LuaWizard {
         fw.write("{\n" + renderer.file + "}\n");
         fw.flush();
         fw.close();
+
+
     }
 }

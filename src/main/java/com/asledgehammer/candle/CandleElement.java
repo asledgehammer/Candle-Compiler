@@ -14,9 +14,9 @@ public abstract class CandleElement<E extends CandleElement<E>> {
   }
 
   public void walk(@NotNull CandleGraph graph) {
-    if (this.walked) return;
+//    if (this.walked) return;
     this.onWalk(graph);
-    this.walked = true;
+//    this.walked = true;
   }
 
   @SuppressWarnings("unchecked")

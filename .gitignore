@@ -11,3 +11,5 @@ bin
 docs/
 /rosetta/
 dist2/
+python/
+classloaded.txt

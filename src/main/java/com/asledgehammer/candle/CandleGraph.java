@@ -1,10 +1,13 @@
 package com.asledgehammer.candle;
 
 import com.asledgehammer.rosetta.Rosetta;
+import com.google.common.reflect.ClassPath;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.instrument.Instrumentation;
+import java.nio.FloatBuffer;
 import java.util.*;
 
 public class CandleGraph {
@@ -17,8 +20,78 @@ public class CandleGraph {
 
   final Rosetta docs = new Rosetta();
 
-  public void walk() {
+  int changed = 0;
 
+  public void walk(boolean clear) {
+
+    try {
+      docs.addDirectory(new File("./rosetta/json/"));
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    if (clear) {
+      aliases.clear();
+      classes.clear();
+      aliasesSorted.clear();
+      classesSorted.clear();
+
+      for (Class<?> clazz : classBag.getClasses()) {
+        CandleClass eClass = new CandleClass(clazz);
+        classes.put(clazz, eClass);
+      }
+    }
+
+    do {
+      changed = 0;
+
+      List<Class<?>> classKeys = new ArrayList<>(classes.keySet());
+      classKeys.sort(CandleClassComparator.INSTANCE);
+      for (Class<?> clazz : classKeys) {
+        CandleClass candleClass = classes.get(clazz);
+        candleClass.walk(this);
+        if (!classesSorted.contains(candleClass)) {
+          classesSorted.add(candleClass);
+        }
+      }
+
+      List<Class<?>> aliasKeys = new ArrayList<>(aliases.keySet());
+      aliasKeys.sort(CandleClassComparator.INSTANCE);
+      for (Class<?> clazz : aliasKeys) {
+        if (isClass(clazz)) {
+          aliases.remove(clazz);
+          continue;
+        }
+
+        CandleAlias candleAlias = aliases.get(clazz);
+        candleAlias.walk(this);
+        if (!aliasesSorted.contains(candleAlias)) {
+          aliasesSorted.add(candleAlias);
+        }
+      }
+    } while (changed != 0);
+
+    System.out.println("Iterator: " + classes.get(Iterator.class));
+  }
+
+  public void walkEverything() throws IOException {
+    Instrumentation inst = InstrumentHook.getInstrumentation();
+    for (Class<?> clazz: inst.getAllLoadedClasses()) {
+      if(clazz.getPackage() == null) continue;
+      if(clazz.isAnonymousClass()) continue;
+      if(clazz.isHidden()) continue;
+      addClass(clazz);
+      if(!clazz.getSimpleName().equals("OutOfMemoryError")) {
+
+
+        if(clazz.equals(FloatBuffer.class)) {
+          System.out.println(clazz.getName());
+        }
+      }
+    }
+  }
+
+  public void walkLegacy() {
     try {
       docs.addDirectory(new File("./rosetta/json/"));
     } catch (Exception e) {
@@ -95,24 +168,40 @@ public class CandleGraph {
     if (clazz.equals(Map.class) || clazz.equals(List.class)) return;
 
     if (isClass(clazz)) return;
-    this.aliases.put(clazz, new CandleAlias(clazz));
+
+    if (!this.aliases.containsKey(clazz)) {
+      this.aliases.put(clazz, new CandleAlias(clazz));
+      this.changed++;
+    }
   }
 
   public void addAlias(CandleAlias candleAlias) {
     Class<?> clazz = candleAlias.getClazz();
     if (isClass(clazz)) return;
-    this.aliases.put(clazz, candleAlias);
+
+    if (!this.aliases.containsKey(clazz)) {
+      this.aliases.put(clazz, candleAlias);
+      this.changed++;
+    }
   }
 
   public void addClass(Class<?> clazz) {
-    if (isAlias(clazz)) aliases.remove(clazz);
-    this.classes.put(clazz, new CandleClass(clazz));
+    if (isAlias(clazz)) {
+      aliases.remove(clazz);
+    }
+    if (!this.classes.containsKey(clazz)) {
+      this.classes.put(clazz, new CandleClass(clazz));
+      this.changed++;
+    }
   }
 
   public void addClass(CandleClass candleClass) {
     Class<?> clazz = candleClass.getClazz();
     if (isAlias(clazz)) aliases.remove(clazz);
-    this.classes.put(clazz, candleClass);
+    if (!this.classes.containsKey(clazz)) {
+      this.classes.put(clazz, candleClass);
+      this.changed++;
+    }
   }
 
   public boolean isAlias(Class<?> clazz) {
@@ -148,6 +237,10 @@ public class CandleGraph {
 
   public void evaluate(Class<?> clazz) {
     while (clazz.isArray()) clazz = clazz.getComponentType();
-    if (!isExposedClass(clazz) && !CandleClassBag.isExempt(clazz)) addAlias(clazz);
+    if (!isExposedClass(clazz) && !CandleClassBag.isExempt(clazz)) {
+      // Maybe this is better.
+      addClass(clazz);
+      // addAlias(clazz);
+    }
   }
 }

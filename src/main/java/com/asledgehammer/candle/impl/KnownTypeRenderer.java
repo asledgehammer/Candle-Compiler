@@ -56,7 +56,7 @@ public class KnownTypeRenderer implements CandleRenderAdapter {
         return candleClass -> {
             String s = "";
             String i = "    ";
-            Map<String, CandleField> fields = candleClass.getFields();
+            Map<String, CandleField> fields = candleClass.getStaticFields();
             Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
                     candleClass.getStaticMethods();
             Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();

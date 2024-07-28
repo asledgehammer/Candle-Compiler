@@ -1,19 +1,27 @@
 package com.asledgehammer.candle;
 
 import com.asledgehammer.candle.impl.EmmyLuaRenderer;
+import com.asledgehammer.candle.impl.PythonTypingsRenderer;
 import com.asledgehammer.candle.impl.RosettaRenderer;
 import zombie.Lua.LuaManager;
+import zombie.iso.objects.interfaces.Thumpable;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.*;
 
 class Candle {
 
+  public static boolean addReturnClasses = false;
   final CandleGraph graph = new CandleGraph();
 
-  void walk() {
-    this.graph.walk();
+  public static boolean addSubClasses = false;
+  public static boolean addSuperClasses = false;
+  public static boolean addParameterClasses = false;
+
+  void walk(boolean clear) {
+    this.graph.walk(clear);
   }
 
   void render(CandleRenderAdapter adapter) {
@@ -87,7 +95,11 @@ class Candle {
   }
 
   public static void main(String[] yargs) throws IOException {
+    //    mainPy(yargs);
+    mainLua(yargs);
+  }
 
+  private static void mainRosetta(String[] yargs) throws IOException {
     String path = "./dist/";
     if (yargs.length != 0) path = yargs[1];
 
@@ -95,14 +107,49 @@ class Candle {
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
     Candle candle = new Candle();
-    candle.walk();
+    candle.walk(true);
 
+    // Export to Rosetta
     RosettaRenderer renderer = new RosettaRenderer();
     candle.render(renderer);
-
     renderer.saveJSON(candle.graph, new File("./dist2/"));
+  }
 
-//    candle.render(new EmmyLuaRenderer());
-//    candle.save(dir);
+  private static void mainLua(String[] yargs) throws IOException {
+    String path = "./dist/";
+    if (yargs.length != 0) path = yargs[1];
+
+    File dir = new File(path);
+    if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
+
+    Candle candle = new Candle();
+    candle.graph.walkLegacy();
+
+    // Export to Lua
+    candle.render(new EmmyLuaRenderer());
+    candle.save(dir);
+  }
+
+  private static void mainPy(String[] yargs) throws IOException {
+    addSubClasses = true;
+    addSuperClasses = true;
+    addParameterClasses = true;
+    addReturnClasses = true;
+
+    String path = "./dist/";
+    if (yargs.length != 0) path = yargs[0];
+
+    File dir = new File(path);
+    if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
+
+    Candle candle = new Candle();
+    candle.graph.walkEverything();
+    candle.walk(false);
+
+    //    System.out.println("Annotation: " + candle.graph.classes.containsKey(Annotation.class));
+
+    // Export to Python
+    PythonTypingsRenderer renderer = new PythonTypingsRenderer();
+    renderer.render(candle.graph);
   }
 }

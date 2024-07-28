@@ -1,7 +1,6 @@
 package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
-import com.asledgehammer.rosetta.Rosetta;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import zombie.Lua.LuaManager;
@@ -36,7 +35,7 @@ public class RosettaRenderer implements CandleRenderAdapter {
     @Override
     public CandleRenderer<CandleClass> getClassRenderer() {
         return clazz -> {
-            Map<String, CandleField> fields = clazz.getFields();
+            Map<String, CandleField> fields = clazz.getStaticFields();
             Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic = clazz.getStaticMethods();
             Map<String, CandleExecutableCluster<CandleMethod>> methods = clazz.getMethods();
 

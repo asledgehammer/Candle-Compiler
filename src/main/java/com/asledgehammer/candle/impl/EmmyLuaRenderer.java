@@ -67,10 +67,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           paramBuilder.setLength(paramBuilder.length() - 2);
         }
 
-        builder
-            .append("--- @return ")
-            .append(first.getExecutable().getDeclaringClass().getSimpleName())
-            .append('\n');
+        String clazzName = first.getExecutable().getDeclaringClass().getSimpleName();
+
+        builder.append("--- @return ").append(clazzName).append('\n');
 
         if (cluster.hasOverloads()) {
           for (int index = 1; index < constructors.size(); index++) {
@@ -153,7 +152,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         if (yamlFirst != null) {
           RosettaReturns yamlReturn = yamlFirst.getReturns();
           if (yamlReturn.hasNotes()) {
-              builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
+            builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
           }
         }
 
@@ -164,8 +163,18 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             CandleMethod overload = methods.get(index);
             RosettaMethod yaml = overload.getDocs();
 
+            boolean isStatic = overload.isStatic();
+
             builder.append("--- @overload fun(");
+
+            boolean hasParams = false;
+            if (!isStatic) {
+              builder.append("self: ").append(classNameLegalCurrent).append(", ");
+              hasParams = true;
+            }
+
             if (overload.hasParameters()) {
+              hasParams = true;
               List<CandleParameter> parameters = overload.getParameters();
               for (CandleParameter parameter : parameters) {
                 builder
@@ -174,6 +183,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                     .append(parameter.getJavaParameter().getType().getSimpleName())
                     .append(", ");
               }
+            }
+            if (hasParams) {
               builder.setLength(builder.length() - 2);
             }
             builder.append("): ");
@@ -208,7 +219,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
   @Override
   public CandleRenderer<CandleClass> getClassRenderer() {
     return candleClass -> {
-      Map<String, CandleField> fields = candleClass.getFields();
+      Map<String, CandleField> fields = candleClass.getStaticFields();
       Map<String, CandleExecutableCluster<CandleMethod>> methodsStatic =
           candleClass.getStaticMethods();
       Map<String, CandleExecutableCluster<CandleMethod>> methods = candleClass.getMethods();
