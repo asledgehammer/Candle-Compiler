@@ -2,7 +2,7 @@
   <configuration default="false" name="Candle" type="Application" factoryName="Application" nameIsGenerated="true">
     <option name="MAIN_CLASS_NAME" value="com.asledgehammer.candle.Candle" />
     <module name="Candle-Compiler.main" />
-    <option name="VM_PARAMETERS" value="-javaagent:lib/JavaAgent.jar -Xmx8g -Xlog:class+load=info:classloaded.txt" />
+    <option name="VM_PARAMETERS" value="-javaagent:lib/JavaAgent.jar -Xmx8g" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="com.asledgehammer.candle.*" />

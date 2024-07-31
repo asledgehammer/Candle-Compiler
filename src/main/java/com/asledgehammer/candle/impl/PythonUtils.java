@@ -1,10 +1,11 @@
 package com.asledgehammer.candle.impl;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
+import java.util.ArrayList;
 import java.util.List;
-
-import static com.asledgehammer.candle.CandleUtils.commaSplit;
 
 public class PythonUtils {
 
@@ -108,4 +109,78 @@ public class PythonUtils {
     };
   }
 
+  public static List<String> extractClasses(String fullType, boolean allowDuplicates) {
+    List<String> clazzes = new ArrayList<>();
+    recurseExtract(fullType, clazzes, allowDuplicates);
+    return clazzes;
+  }
+
+  private static void recurseExtract(
+          String fullType, List<String> clazzes, boolean allowDuplicates) {
+
+    if (fullType.contains("<")) {
+      int firstIndex = fullType.indexOf('<');
+      int lastIndex = fullType.lastIndexOf('>');
+      if(lastIndex == -1) {
+        lastIndex = fullType.length() - 1;
+      }
+
+      String r = fullType.substring(0, firstIndex);
+      if (allowDuplicates || !clazzes.contains(r)) {
+        clazzes.add(r);
+      }
+
+      String subTypes = fullType.substring(firstIndex + 1, lastIndex);
+      if (subTypes.contains(",")) {
+        String[] split = subTypes.split(",");
+        for (String s : split) {
+          s = s.trim();
+//          System.out.println(s);
+          recurseExtract(s, clazzes, allowDuplicates);
+        }
+      } else {
+        recurseExtract(subTypes, clazzes, allowDuplicates);
+      }
+    } else {
+      if (allowDuplicates || !clazzes.contains(fullType)) {
+        clazzes.add(fullType);
+      }
+    }
+  }
+
+  public static List<String> commaSplit(@NotNull String s) {
+
+    int inside = 0;
+    List<String> args = new ArrayList<>();
+    StringBuilder arg = new StringBuilder();
+
+    for (int index = 0; index < s.length(); index++) {
+      char c = s.charAt(index);
+
+      if (c == '<') {
+        inside++;
+        if (inside == 1) {
+          continue;
+        }
+      } else if (c == '>') {
+        inside--;
+        if (inside == 0) {
+          break;
+        }
+      } else if (c == ',' && inside == 1) {
+        args.add(arg.toString().trim());
+        arg = new StringBuilder();
+        continue;
+      }
+      if (inside > 0) {
+        arg.append(c);
+      }
+    }
+
+    if (!arg.isEmpty()) {
+      args.add(arg.toString().trim());
+    }
+
+    return args;
+  }
 }

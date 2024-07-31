@@ -1,9 +1,12 @@
 package com.asledgehammer.candle;
 
 import com.asledgehammer.candle.impl.EmmyLuaRenderer;
+import com.asledgehammer.candle.impl.PythonBag;
 import com.asledgehammer.candle.impl.PythonTypingsRenderer;
 import com.asledgehammer.candle.impl.RosettaRenderer;
 import zombie.Lua.LuaManager;
+import zombie.core.skinnedmodel.runtime.*;
+import zombie.input.JoypadManager;
 import zombie.iso.objects.interfaces.Thumpable;
 
 import java.io.File;
@@ -136,6 +139,9 @@ class Candle {
     addParameterClasses = true;
     addReturnClasses = true;
 
+    ClassLoadParser parser = new ClassLoadParser();
+    parser.parse("classes.txt");
+
     String path = "./dist/";
     if (yargs.length != 0) path = yargs[0];
 
@@ -143,10 +149,13 @@ class Candle {
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
     Candle candle = new Candle();
-    candle.graph.walkEverything();
-    candle.walk(false);
+    for (Class<?> clazz : parser.classes) {
+      candle.graph.addClass(clazz);
+    }
 
-    //    System.out.println("Annotation: " + candle.graph.classes.containsKey(Annotation.class));
+    PythonBag.addClasses(candle.graph);
+
+    candle.walk(false);
 
     // Export to Python
     PythonTypingsRenderer renderer = new PythonTypingsRenderer();

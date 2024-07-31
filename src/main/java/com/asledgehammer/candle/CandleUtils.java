@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static com.asledgehammer.candle.impl.PythonTypingsRenderer.DISCOVERED_CLASSES;
+
 class SubArrayList<S extends String> extends ArrayList<S> {}
 
 public final class CandleUtils {
@@ -116,7 +118,7 @@ public final class CandleUtils {
     }
 
     // Build generic arguments.
-//    System.out.println("fullType: " + fullType);
+    //    System.out.println("fullType: " + fullType);
     String genArgsString = fullType.substring(indexCarrot + 1, fullType.length() - 1);
     List<String> genArgs = commaSplit(genArgsString);
     StringBuilder s = new StringBuilder(mainType + '<');
@@ -130,7 +132,6 @@ public final class CandleUtils {
 
   public static List<String> extractClasses(String fullType, boolean allowDuplicates) {
     List<String> clazzes = new ArrayList<>();
-//    System.out.println(fullType);
     recurseExtract(fullType, clazzes, allowDuplicates);
     return clazzes;
   }
@@ -141,7 +142,7 @@ public final class CandleUtils {
     if (fullType.contains("<")) {
       int firstIndex = fullType.indexOf('<');
       int lastIndex = fullType.lastIndexOf('>');
-      if(lastIndex == -1) {
+      if (lastIndex == -1) {
         lastIndex = fullType.length() - 1;
       }
 
@@ -155,7 +156,7 @@ public final class CandleUtils {
         String[] split = subTypes.split(",");
         for (String s : split) {
           s = s.trim();
-//          System.out.println(s);
+          //          System.out.println(s);
           recurseExtract(s, clazzes, allowDuplicates);
         }
       } else {
@@ -173,8 +174,15 @@ public final class CandleUtils {
     List<Class<?>> clazzes = new ArrayList<>();
 
     for (String s : list) {
+
+      if (DISCOVERED_CLASSES.containsKey(s)) {
+        clazzes.add(DISCOVERED_CLASSES.get(s));
+        continue;
+      }
       try {
-        clazzes.add(Class.forName(s, false, null));
+        Class<?> clazz = Class.forName(s, false, ClassLoader.getSystemClassLoader());
+        DISCOVERED_CLASSES.put(s, clazz);
+        clazzes.add(clazz);
       } catch (ClassNotFoundException e) {
       }
     }

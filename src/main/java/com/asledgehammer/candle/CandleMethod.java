@@ -125,7 +125,6 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   public Map<String, Object> genDocs() {
 
-    //        System.out.println("Method.genDocs(): " + getLuaName());
 
     Map<String, Object> mapMethod = new HashMap<>();
 

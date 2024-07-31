@@ -2,6 +2,7 @@ package com.asledgehammer.candle;
 
 import com.asledgehammer.rosetta.Rosetta;
 import com.google.common.reflect.ClassPath;
+import zombie.input.JoypadManager;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -70,8 +71,6 @@ public class CandleGraph {
         }
       }
     } while (changed != 0);
-
-    System.out.println("Iterator: " + classes.get(Iterator.class));
   }
 
   public void walkEverything() throws IOException {
@@ -81,13 +80,6 @@ public class CandleGraph {
       if(clazz.isAnonymousClass()) continue;
       if(clazz.isHidden()) continue;
       addClass(clazz);
-      if(!clazz.getSimpleName().equals("OutOfMemoryError")) {
-
-
-        if(clazz.equals(FloatBuffer.class)) {
-          System.out.println(clazz.getName());
-        }
-      }
     }
   }
 
