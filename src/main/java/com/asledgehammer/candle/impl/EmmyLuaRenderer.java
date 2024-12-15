@@ -239,7 +239,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       String superClazzName =
           parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
 
-      StringBuilder builder = new StringBuilder("--- @meta\n\n");
+      StringBuilder builder = new StringBuilder("--- @meta _\n\n");
       builder.append("--- @class ").append(className).append(superClazzName);
 
       RosettaClass yaml = candleClass.getDocs();

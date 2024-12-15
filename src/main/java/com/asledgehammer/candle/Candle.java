@@ -59,13 +59,13 @@ class Candle {
           .append("\n");
     }
     System.out.println("Candle: Writing __global.lua ..");
-    CandleGraph.write(new File(dir, "__global.lua"), "--- @meta\n" + builder);
+    CandleGraph.write(new File(dir, "__global.lua"), "--- @meta _\n" + builder);
   }
 
   public void saveJavaAPI(File dir) {
     String fileContents =
         """
-        --- @meta
+        --- @meta _
 
         --- @alias byte number
         --- @alias short number
