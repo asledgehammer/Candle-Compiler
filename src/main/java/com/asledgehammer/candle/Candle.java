@@ -153,7 +153,7 @@ class Candle {
       candle.graph.addClass(clazz);
     }
 
-    PythonBag.addClasses(candle.graph);
+    //PythonBag.addClasses(candle.graph);
 
     candle.walk(false);
 
