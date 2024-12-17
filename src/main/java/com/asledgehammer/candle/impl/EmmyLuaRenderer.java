@@ -2,15 +2,47 @@ package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
 import com.asledgehammer.rosetta.*;
+import se.krka.kahlua.j2se.KahluaTableImpl;
+import se.krka.kahlua.vm.KahluaArray;
+import se.krka.kahlua.vm.KahluaTable;
+import se.krka.kahlua.vm.LuaClosure;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static java.util.Map.entry;
 
 public class EmmyLuaRenderer implements CandleRenderAdapter {
 
   String classNameLegalCurrent = "";
+
+  static Map<Class<?>, String> luaTypeNameMap = Map.ofEntries(
+    entry(float.class, "number"),
+    entry(Float.class, "number"),
+    entry(double.class, "number"),
+    entry(Double.class, "number"),
+    entry(byte.class, "integer"),
+    entry(Byte.class, "integer"),
+    // not representing short as integer because there are bugs relating to it, so knowing its java type is important
+    entry(int.class, "integer"),
+    entry(Integer.class, "integer"),
+    entry(long.class, "integer"),
+    entry(Long.class, "integer"),
+    entry(KahluaTableImpl.class, "table"),
+    entry(KahluaTable.class, "table"),
+    entry(KahluaArray.class, "table"),
+    entry(LuaClosure.class, "function"),
+    entry(String.class, "string"),
+    entry(char.class, "string"),
+    entry(Character.class, "string"),
+    entry(Object.class, "any"),
+    entry(void.class, "nil"),
+    entry(Void.class, "nil"),
+    entry(Boolean.class, "boolean")
+  );
+
+  static String getTypeLuaName(Class<?> clazz) {
+    return luaTypeNameMap.getOrDefault(clazz, clazz.getSimpleName());
+  }
 
   CandleRenderer<CandleField> fieldRenderer =
       field -> {
@@ -21,7 +53,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                 + (field.isPublic() ? "public " : "")
                 + field.getLuaName()
                 + " "
-                + field.getClazz().getSimpleName();
+                + getTypeLuaName(field.getClazz());
 
         if (yaml != null && yaml.hasNotes()) f += ' ' + yaml.getNotes().replaceAll("\\n", "");
 
@@ -60,7 +92,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             if (pName.equals("true")) {
               pName = "arg" + argOffset++;
             }
-            String pType = parameter.getJavaParameter().getType().getSimpleName();
+            String pType = getTypeLuaName(parameter.getJavaParameter().getType());
             builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
             paramBuilder.append(pName).append(", ");
           }
@@ -81,7 +113,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                 builder
                     .append(parameter.getLuaName())
                     .append(": ")
-                    .append(parameter.getJavaParameter().getType().getSimpleName())
+                    .append(getTypeLuaName(parameter.getJavaParameter().getType()))
                     .append(", ");
               }
               builder.setLength(builder.length() - 2);
@@ -134,7 +166,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             if (pName.equals("true")) {
               pName = "arg" + argOffset++;
             }
-            String pType = parameter.getJavaParameter().getType().getSimpleName();
+            String pType = getTypeLuaName(parameter.getJavaParameter().getType());
             builder.append("--- @param ").append(pName).append(' ').append(pType);
 
             if (yaml != null && yaml.hasNotes()) {
@@ -148,7 +180,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           paramBuilder.setLength(paramBuilder.length() - 2);
         }
 
-        builder.append("--- @return ").append(first.getReturnType().getSimpleName());
+        builder.append("--- @return ").append(getTypeLuaName(first.getReturnType()));
         if (yamlFirst != null) {
           RosettaReturns yamlReturn = yamlFirst.getReturns();
           if (yamlReturn.hasNotes()) {
@@ -180,7 +212,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                 builder
                     .append(parameter.getLuaName())
                     .append(": ")
-                    .append(parameter.getJavaParameter().getType().getSimpleName())
+                    .append(getTypeLuaName(parameter.getJavaParameter().getType()))
                     .append(", ");
               }
             }
@@ -189,7 +221,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             }
             builder.append("): ");
 
-            builder.append(overload.getReturnType().getSimpleName());
+            builder.append(getTypeLuaName(overload.getReturnType()));
 
             if (yaml != null) {
               RosettaReturns yamlReturn = yaml.getReturns();
@@ -239,7 +271,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       String superClazzName =
           parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
 
-      StringBuilder builder = new StringBuilder("--- @meta\n\n");
+      StringBuilder builder = new StringBuilder("--- @meta _\n\n");
       builder.append("--- @class ").append(className).append(superClazzName);
 
       RosettaClass yaml = candleClass.getDocs();
