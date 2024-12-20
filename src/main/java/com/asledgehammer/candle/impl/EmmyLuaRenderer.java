@@ -40,6 +40,31 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
     entry(Boolean.class, "boolean")
   );
 
+  static HashSet<String> illegalIdentifiers = new HashSet<>(
+    Arrays.stream(new String[] {
+      "and",
+      "break",
+      "do",
+      "else",
+      "elseif",
+      "end",
+      "false",
+      "for",
+      "function",
+      "if",
+      "in",
+      "local",
+      "nil",
+      "not",
+      "or",
+      "repeat",
+      "return",
+      "then",
+      "true",
+      "until",
+      "while"
+    }).toList());
+
   static String getTypeLuaName(Class<?> clazz) {
     return luaTypeNameMap.getOrDefault(clazz, clazz.getSimpleName());
   }
@@ -89,7 +114,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           List<CandleParameter> parameters = first.getParameters();
           for (CandleParameter parameter : parameters) {
             String pName = parameter.getLuaName();
-            if (pName.equals("true")) {
+            if (illegalIdentifiers.contains(pName)) {
               pName = "arg" + argOffset++;
             }
             String pType = getTypeLuaName(parameter.getJavaParameter().getType());
@@ -163,7 +188,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             String pName = parameter.getLuaName();
             RosettaParameter yaml = parameter.getDocs();
 
-            if (pName.equals("true")) {
+            if (illegalIdentifiers.contains(pName)) {
               pName = "arg" + argOffset++;
             }
             String pType = getTypeLuaName(parameter.getJavaParameter().getType());
@@ -234,14 +259,26 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           }
         }
 
-        builder
-            .append("function ")
-            .append(classNameLegalCurrent)
-            .append(first.isStatic() ? '.' : ':')
-            .append(cluster.getLuaName())
-            .append("(")
-            .append(paramBuilder)
-            .append(") end");
+        String methodName = cluster.getLuaName();
+        if (illegalIdentifiers.contains(methodName)) {
+          builder
+                  .append(classNameLegalCurrent)
+                  .append("[\"")
+                  .append(methodName)
+                  .append("\"] = function(")
+                  .append(first.isStatic() ? "self, " : "")
+                  .append(paramBuilder)
+                  .append(") end");
+        } else {
+          builder
+                  .append("function ")
+                  .append(classNameLegalCurrent)
+                  .append(first.isStatic() ? '.' : ':')
+                  .append(methodName)
+                  .append("(")
+                  .append(paramBuilder)
+                  .append(") end");
+        }
 
         String resultCode = builder.toString();
         cluster.setRenderedCode(resultCode);
