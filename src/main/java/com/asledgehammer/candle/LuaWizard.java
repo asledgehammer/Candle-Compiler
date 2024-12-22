@@ -11,7 +11,7 @@ public class LuaWizard {
     public static void main(String[] yargs) throws IOException {
 
         String path = "./dist/";
-        if (yargs.length != 0) path = yargs[1];
+        if (yargs.length != 0) path = yargs[0];
 
         File dir = new File(path);
         if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
