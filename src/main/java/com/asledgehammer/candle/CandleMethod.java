@@ -17,12 +17,14 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   private RosettaMethod docs;
   private final String luaName;
   private final boolean exposed;
+  private final boolean deprecated;
 
   public CandleMethod(@NotNull CandleClass candleClass, @NotNull Method method) {
     super(method);
 
     this.candleClass = candleClass;
     this.method = method;
+    this.deprecated = method.getAnnotation(Deprecated.class) != null;
 
     LuaMethod annotation = method.getAnnotation(LuaMethod.class);
     this.exposed = annotation != null;
@@ -86,6 +88,10 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   public boolean isExposed() {
     return this.exposed;
+  }
+
+  public boolean isDeprecated() {
+    return this.deprecated;
   }
 
   public boolean isDocsValid() {

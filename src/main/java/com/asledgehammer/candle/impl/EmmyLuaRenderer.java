@@ -215,10 +215,15 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
         builder.append('\n');
 
+        boolean deprecated = first.isDeprecated();
+
         if (cluster.hasOverloads()) {
           for (int index = 1; index < methods.size(); index++) {
             CandleMethod overload = methods.get(index);
             RosettaMethod yaml = overload.getDocs();
+
+            // all overloads must be deprecated to mark the function as deprecated
+            deprecated = deprecated && overload.isDeprecated();
 
             boolean isStatic = overload.isStatic();
 
@@ -257,6 +262,10 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
             builder.append('\n');
           }
+        }
+
+        if (deprecated) {
+            builder.append("--- @deprecated\n");
         }
 
         String methodName = cluster.getLuaName();
