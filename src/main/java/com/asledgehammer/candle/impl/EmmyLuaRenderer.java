@@ -266,7 +266,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                   .append("[\"")
                   .append(methodName)
                   .append("\"] = function(")
-                  .append(first.isStatic() ? "self, " : "")
+                  .append(first.isStatic() ? "" : "self, ")
                   .append(paramBuilder)
                   .append(") end");
         } else {
