@@ -127,7 +127,14 @@ public class CandleClassBag {
     if (classes.contains(clazz) || isExempt(clazz)) return;
     classes.add(clazz);
     Class<?> superClazz = clazz.getSuperclass();
+    // TODO: if the superclass is not actually exposed, static members and constructors should not be rendered
     if (superClazz != null) addClass(superClazz);
+
+    Class<?>[] interfazes = clazz.getInterfaces();
+    for (Class<?> interfaze: interfazes) {
+      if (classes.contains(interfaze)) continue;
+      classes.add(interfaze);
+    }
   }
 
   public List<Class<?>> getClasses() {
