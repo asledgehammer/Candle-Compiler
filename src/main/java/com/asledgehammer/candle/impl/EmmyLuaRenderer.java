@@ -215,10 +215,15 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
         builder.append('\n');
 
+        boolean deprecated = first.isDeprecated();
+
         if (cluster.hasOverloads()) {
           for (int index = 1; index < methods.size(); index++) {
             CandleMethod overload = methods.get(index);
             RosettaMethod yaml = overload.getDocs();
+
+            // all overloads must be deprecated to mark the function as deprecated
+            deprecated = deprecated && overload.isDeprecated();
 
             boolean isStatic = overload.isStatic();
 
@@ -259,6 +264,10 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
           }
         }
 
+        if (deprecated) {
+            builder.append("--- @deprecated\n");
+        }
+
         String methodName = cluster.getLuaName();
         if (illegalIdentifiers.contains(methodName)) {
           builder
@@ -266,7 +275,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                   .append("[\"")
                   .append(methodName)
                   .append("\"] = function(")
-                  .append(first.isStatic() ? "self, " : "")
+                  .append(first.isStatic() ? "" : "self, ")
                   .append(paramBuilder)
                   .append(") end");
         } else {
@@ -303,13 +312,24 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
       classNameLegalCurrent = classNameLegal;
 
-      Class<?> parentClass = candleClass.getClazz().getSuperclass();
+      Class<?> clazz = candleClass.getClazz();
+      Class<?> parentClass = clazz.getSuperclass();
       String parentName = parentClass != null ? parentClass.getSimpleName() : "";
-      String superClazzName =
-          parentClass != null && !parentName.equals("Object") ? ": " + parentName : "";
+      String supersString =
+          parentClass != null && !parentName.equals("Object") ? parentName : "";
+      Class<?>[] interfazes = clazz.getInterfaces();
+      if (interfazes.length > 0) {
+          supersString += (supersString.isEmpty() ? "" : ", ") + interfazes[0].getSimpleName();
+          for (int i = 1; i < interfazes.length; i++) {
+              supersString += ", " + interfazes[i].getSimpleName();
+          }
+      }
+      if (!supersString.isEmpty()) {
+          supersString = ": " + supersString;
+      }
 
       StringBuilder builder = new StringBuilder("--- @meta _\n\n");
-      builder.append("--- @class ").append(className).append(superClazzName);
+      builder.append("--- @class ").append(className).append(supersString);
 
       RosettaClass yaml = candleClass.getDocs();
 
@@ -318,12 +338,6 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       }
       builder.append('\n');
       builder.append("--- @field public class any\n");
-
-      Class<?> clazz = candleClass.getClazz();
-      Class<?>[] interfazes = clazz.getInterfaces();
-      for (Class<?> interfaze : interfazes) {
-        builder.append("--- @implement ").append(interfaze.getSimpleName()).append('\n');
-      }
 
       if (!fields.isEmpty()) {
         List<String> keysSorted = new ArrayList<>(fields.keySet());
