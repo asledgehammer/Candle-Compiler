@@ -5,9 +5,6 @@ import com.asledgehammer.candle.impl.PythonBag;
 import com.asledgehammer.candle.impl.PythonTypingsRenderer;
 import com.asledgehammer.candle.impl.RosettaRenderer;
 import zombie.Lua.LuaManager;
-import zombie.core.skinnedmodel.runtime.*;
-import zombie.input.JoypadManager;
-import zombie.iso.objects.interfaces.Thumpable;
 
 import java.io.File;
 import java.io.IOException;
@@ -98,14 +95,17 @@ class Candle {
   }
 
   private static void mainLua(String[] yargs) throws IOException {
+    // any more arguments and this should probably be replaced with 'proper' handling
     String path = "./dist/";
     if (yargs.length != 0) path = yargs[0];
+    String rosettaPath = "./rosetta/json/";
+    if (yargs.length > 1) rosettaPath = yargs[1];
 
     File dir = new File(path);
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
     Candle candle = new Candle();
-    candle.graph.walkLegacy();
+    candle.graph.walkLegacy(rosettaPath);
 
     // Export to Lua
     candle.render(new EmmyLuaRenderer());
