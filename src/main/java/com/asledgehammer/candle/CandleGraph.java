@@ -2,7 +2,6 @@ package com.asledgehammer.candle;
 
 import com.asledgehammer.rosetta.Rosetta;
 import com.google.common.reflect.ClassPath;
-import zombie.input.JoypadManager;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -83,9 +82,9 @@ public class CandleGraph {
     }
   }
 
-  public void walkLegacy() {
+  public void walkLegacy(String rosettaPath) {
     try {
-      docs.addDirectory(new File("./rosetta/json/"));
+      docs.addDirectory(new File(rosettaPath));
     } catch (Exception e) {
       e.printStackTrace();
     }
