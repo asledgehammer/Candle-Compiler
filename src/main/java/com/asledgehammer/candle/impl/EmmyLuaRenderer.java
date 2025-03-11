@@ -189,7 +189,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             if (yamlFirst != null) {
                 RosettaReturns yamlReturn = yamlFirst.getReturns();
                 if (yamlReturn.hasNotes()) {
-                    builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
+                    builder.append(" _ ").append(yamlReturn.getNotes().replaceAll("\\n", ""));
                 }
             }
 
