@@ -69,6 +69,30 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
     return luaTypeNameMap.getOrDefault(clazz, clazz.getSimpleName());
   }
 
+  private static void renderParameters(CandleExecutable<?, ?> executable, StringBuilder builder, StringBuilder paramBuilder) {
+      byte argOffset = 1;
+
+      for (CandleParameter parameter : executable.getParameters()) {
+          String pName = parameter.getLuaName();
+          RosettaParameter yaml = parameter.getDocs();
+
+          if (illegalIdentifiers.contains(pName)) {
+              pName = "arg" + argOffset++;
+          }
+          String pType = getTypeLuaName(parameter.getJavaParameter().getType());
+          builder.append("--- @param ").append(pName).append(' ').append(pType);
+
+          if (yaml.hasNotes()) {
+              builder.append(' ').append(yaml.getNotes().replaceAll("\\n", ""));
+          }
+
+          builder.append('\n');
+
+          paramBuilder.append(pName).append(", ");
+      }
+      paramBuilder.setLength(paramBuilder.length() - 2);
+  }
+
   CandleRenderer<CandleField> fieldRenderer =
       field -> {
         RosettaField yaml = field.getDocs();
@@ -107,17 +131,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
             StringBuilder paramBuilder = new StringBuilder();
             if (constructor.hasParameters()) {
-                List<CandleParameter> parameters = constructor.getParameters();
-                for (CandleParameter parameter : parameters) {
-                    String pName = parameter.getLuaName();
-                    if (illegalIdentifiers.contains(pName)) {
-                        pName = "arg" + argOffset++;
-                    }
-                    String pType = getTypeLuaName(parameter.getJavaParameter().getType());
-                    builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
-                    paramBuilder.append(pName).append(", ");
-                }
-                paramBuilder.setLength(paramBuilder.length() - 2);
+                renderParameters(constructor, builder, paramBuilder);
             }
 
             String clazzName = constructor.getExecutable().getDeclaringClass().getSimpleName();
@@ -159,26 +173,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
             StringBuilder paramBuilder = new StringBuilder();
             if (method.hasParameters()) {
-                List<CandleParameter> parameters = method.getParameters();
-                for (CandleParameter parameter : parameters) {
-                    String pName = parameter.getLuaName();
-                    RosettaParameter parameterYaml = parameter.getDocs();
-
-                    if (illegalIdentifiers.contains(pName)) {
-                        pName = "arg" + argOffset++;
-                    }
-                    String pType = getTypeLuaName(parameter.getJavaParameter().getType());
-                    builder.append("--- @param ").append(pName).append(' ').append(pType);
-
-                    if (parameterYaml.hasNotes()) {
-                        builder.append(' ').append(parameterYaml.getNotes().replaceAll("\\n", ""));
-                    }
-
-                    builder.append('\n');
-
-                    paramBuilder.append(pName).append(", ");
-                }
-                paramBuilder.setLength(paramBuilder.length() - 2);
+                renderParameters(method, builder, paramBuilder);
             }
 
             builder.append("--- @return ").append(getTypeLuaName(method.getReturnType()));
