@@ -80,7 +80,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                 + " "
                 + getTypeLuaName(field.getClazz());
 
-        if (yaml != null && yaml.hasNotes()) f += ' ' + yaml.getNotes().replaceAll("\\n", "");
+        if (yaml.hasNotes()) f += ' ' + yaml.getNotes().replaceAll("\\n", "");
 
         return f;
       };
@@ -89,22 +89,20 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       cluster -> {
         StringBuilder builder = new StringBuilder();
         for (CandleConstructor constructor : cluster.getExecutables()) {
-            RosettaConstructor yamlFirst = constructor.getDocs();
+            RosettaConstructor yaml = constructor.getDocs();
 
             byte argOffset = 1;
 
             builder.append("--- @public\n");
             if (constructor.isStatic()) builder.append("--- @static\n");
 
-            if (yamlFirst != null) {
-                if (yamlFirst.hasNotes()) {
-                    builder.append("---\n");
-                    List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
-                    for (String line : lines) {
-                        builder.append("--- ").append(line).append('\n');
-                    }
-                    builder.append("---\n");
+            if (yaml.hasNotes()) {
+                builder.append("---\n");
+                List<String> lines = paginate(yaml.getNotes().replaceAll("\\n", ""), 80);
+                for (String line : lines) {
+                    builder.append("--- ").append(line).append('\n');
                 }
+                builder.append("---\n");
             }
 
             StringBuilder paramBuilder = new StringBuilder();
@@ -143,22 +141,20 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
       cluster -> {
         StringBuilder builder = new StringBuilder();
         for (CandleMethod method : cluster.getExecutables()) {
-            RosettaMethod yamlFirst = method.getDocs();
+            RosettaMethod yaml = method.getDocs();
 
             byte argOffset = 1;
 
             builder.append("--- @public\n");
             if (method.isStatic()) builder.append("--- @static\n");
 
-            if (yamlFirst != null) {
-                if (yamlFirst.hasNotes()) {
-                    builder.append("---\n");
-                    List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
-                    for (String line : lines) {
-                        builder.append("--- ").append(line).append('\n');
-                    }
-                    builder.append("---\n");
+            if (yaml.hasNotes()) {
+                builder.append("---\n");
+                List<String> lines = paginate(yaml.getNotes().replaceAll("\\n", ""), 80);
+                for (String line : lines) {
+                    builder.append("--- ").append(line).append('\n');
                 }
+                builder.append("---\n");
             }
 
             StringBuilder paramBuilder = new StringBuilder();
@@ -166,7 +162,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                 List<CandleParameter> parameters = method.getParameters();
                 for (CandleParameter parameter : parameters) {
                     String pName = parameter.getLuaName();
-                    RosettaParameter yaml = parameter.getDocs();
+                    RosettaParameter parameterYaml = parameter.getDocs();
 
                     if (illegalIdentifiers.contains(pName)) {
                         pName = "arg" + argOffset++;
@@ -174,8 +170,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
                     String pType = getTypeLuaName(parameter.getJavaParameter().getType());
                     builder.append("--- @param ").append(pName).append(' ').append(pType);
 
-                    if (yaml != null && yaml.hasNotes()) {
-                        builder.append(' ').append(yaml.getNotes().replaceAll("\\n", ""));
+                    if (parameterYaml.hasNotes()) {
+                        builder.append(' ').append(parameterYaml.getNotes().replaceAll("\\n", ""));
                     }
 
                     builder.append('\n');
@@ -186,11 +182,9 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
             }
 
             builder.append("--- @return ").append(getTypeLuaName(method.getReturnType()));
-            if (yamlFirst != null) {
-                RosettaReturns yamlReturn = yamlFirst.getReturns();
-                if (yamlReturn.hasNotes()) {
-                    builder.append(" _ ").append(yamlReturn.getNotes().replaceAll("\\n", ""));
-                }
+            RosettaReturns yamlReturn = yaml.getReturns();
+            if (yamlReturn.hasNotes()) {
+                builder.append(" _ ").append(yamlReturn.getNotes().replaceAll("\\n", ""));
             }
 
             builder.append('\n');
@@ -265,7 +259,7 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
       RosettaClass yaml = candleClass.getDocs();
 
-      if (yaml != null && yaml.hasNotes()) {
+      if (yaml.hasNotes()) {
         builder.append(' ').append(yaml.getNotes().replaceAll("\\n", ""));
       }
       builder.append('\n');
