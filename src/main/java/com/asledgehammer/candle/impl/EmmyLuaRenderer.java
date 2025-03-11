@@ -333,7 +333,10 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
     for (String word : s.split(" ")) {
       if ((current + " " + word).length() <= lineLength) {
-        current.append(" ").append(word);
+        if (!current.isEmpty()) {
+            current.append(" ");
+        }
+        current.append(word);
         continue;
       }
       lines.add(current.toString());
