@@ -87,208 +87,140 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
 
   CandleRenderer<CandleExecutableCluster<CandleConstructor>> constructorRenderer =
       cluster -> {
-        List<CandleConstructor> constructors = cluster.getExecutables();
-        CandleConstructor first = constructors.get(0);
-
-        RosettaConstructor yamlFirst = first.getDocs();
-
-        byte argOffset = 1;
-
         StringBuilder builder = new StringBuilder();
-        builder.append("--- @public\n");
-        if (first.isStatic()) builder.append("--- @static\n");
+        for (CandleConstructor constructor : cluster.getExecutables()) {
+            RosettaConstructor yamlFirst = constructor.getDocs();
 
-        if (yamlFirst != null) {
-          if (yamlFirst.hasNotes()) {
-            builder.append("---\n");
-            List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
-            for (String line : lines) {
-              builder.append("--- ").append(line).append('\n');
+            byte argOffset = 1;
+
+            builder.append("--- @public\n");
+            if (constructor.isStatic()) builder.append("--- @static\n");
+
+            if (yamlFirst != null) {
+                if (yamlFirst.hasNotes()) {
+                    builder.append("---\n");
+                    List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
+                    for (String line : lines) {
+                        builder.append("--- ").append(line).append('\n');
+                    }
+                    builder.append("---\n");
+                }
             }
-            builder.append("---\n");
-          }
-        }
 
-        StringBuilder paramBuilder = new StringBuilder();
-        if (first.hasParameters()) {
-          List<CandleParameter> parameters = first.getParameters();
-          for (CandleParameter parameter : parameters) {
-            String pName = parameter.getLuaName();
-            if (illegalIdentifiers.contains(pName)) {
-              pName = "arg" + argOffset++;
+            StringBuilder paramBuilder = new StringBuilder();
+            if (constructor.hasParameters()) {
+                List<CandleParameter> parameters = constructor.getParameters();
+                for (CandleParameter parameter : parameters) {
+                    String pName = parameter.getLuaName();
+                    if (illegalIdentifiers.contains(pName)) {
+                        pName = "arg" + argOffset++;
+                    }
+                    String pType = getTypeLuaName(parameter.getJavaParameter().getType());
+                    builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
+                    paramBuilder.append(pName).append(", ");
+                }
+                paramBuilder.setLength(paramBuilder.length() - 2);
             }
-            String pType = getTypeLuaName(parameter.getJavaParameter().getType());
-            builder.append("--- @param ").append(pName).append(' ').append(pType).append('\n');
-            paramBuilder.append(pName).append(", ");
-          }
-          paramBuilder.setLength(paramBuilder.length() - 2);
+
+            String clazzName = constructor.getExecutable().getDeclaringClass().getSimpleName();
+
+            builder.append("--- @return ").append(clazzName).append('\n');
+
+            builder
+                    .append("function ")
+                    .append(classNameLegalCurrent)
+                    .append(".new(")
+                    .append(paramBuilder)
+                    .append(") end")
+                    .append("\n")
+                    .append("\n");
         }
-
-        String clazzName = first.getExecutable().getDeclaringClass().getSimpleName();
-
-        builder.append("--- @return ").append(clazzName).append('\n');
-
-        if (cluster.hasOverloads()) {
-          for (int index = 1; index < constructors.size(); index++) {
-            CandleConstructor overload = constructors.get(index);
-            builder.append("--- @overload fun(");
-            if (overload.hasParameters()) {
-              List<CandleParameter> parameters = overload.getParameters();
-              for (CandleParameter parameter : parameters) {
-                builder
-                    .append(parameter.getLuaName())
-                    .append(": ")
-                    .append(getTypeLuaName(parameter.getJavaParameter().getType()))
-                    .append(", ");
-              }
-              builder.setLength(builder.length() - 2);
-            }
-            builder.append("): ");
-            builder.append(classNameLegalCurrent).append('\n');
-          }
-        }
-
-        builder
-            .append("function ")
-            .append(classNameLegalCurrent)
-            .append(".new(")
-            .append(paramBuilder)
-            .append(") end");
-
         return builder.toString();
       };
 
+
   CandleRenderer<CandleExecutableCluster<CandleMethod>> methodRenderer =
       cluster -> {
-        List<CandleMethod> methods = cluster.getExecutables();
-        CandleMethod first = methods.get(0);
-        RosettaMethod yamlFirst = first.getDocs();
-
-        byte argOffset = 1;
-
         StringBuilder builder = new StringBuilder();
-        builder.append("--- @public\n");
-        if (first.isStatic()) builder.append("--- @static\n");
+        for (CandleMethod method : cluster.getExecutables()) {
+            RosettaMethod yamlFirst = method.getDocs();
 
-        if (yamlFirst != null) {
-          if (yamlFirst.hasNotes()) {
-            builder.append("---\n");
-            List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
-            for (String line : lines) {
-              builder.append("--- ").append(line).append('\n');
+            byte argOffset = 1;
+
+            builder.append("--- @public\n");
+            if (method.isStatic()) builder.append("--- @static\n");
+
+            if (yamlFirst != null) {
+                if (yamlFirst.hasNotes()) {
+                    builder.append("---\n");
+                    List<String> lines = paginate(yamlFirst.getNotes().replaceAll("\\n", ""), 80);
+                    for (String line : lines) {
+                        builder.append("--- ").append(line).append('\n');
+                    }
+                    builder.append("---\n");
+                }
             }
-            builder.append("---\n");
-          }
-        }
 
-        StringBuilder paramBuilder = new StringBuilder();
-        if (first.hasParameters()) {
-          List<CandleParameter> parameters = first.getParameters();
-          for (CandleParameter parameter : parameters) {
-            String pName = parameter.getLuaName();
-            RosettaParameter yaml = parameter.getDocs();
+            StringBuilder paramBuilder = new StringBuilder();
+            if (method.hasParameters()) {
+                List<CandleParameter> parameters = method.getParameters();
+                for (CandleParameter parameter : parameters) {
+                    String pName = parameter.getLuaName();
+                    RosettaParameter yaml = parameter.getDocs();
 
-            if (illegalIdentifiers.contains(pName)) {
-              pName = "arg" + argOffset++;
+                    if (illegalIdentifiers.contains(pName)) {
+                        pName = "arg" + argOffset++;
+                    }
+                    String pType = getTypeLuaName(parameter.getJavaParameter().getType());
+                    builder.append("--- @param ").append(pName).append(' ').append(pType);
+
+                    if (yaml != null && yaml.hasNotes()) {
+                        builder.append(' ').append(yaml.getNotes().replaceAll("\\n", ""));
+                    }
+
+                    builder.append('\n');
+
+                    paramBuilder.append(pName).append(", ");
+                }
+                paramBuilder.setLength(paramBuilder.length() - 2);
             }
-            String pType = getTypeLuaName(parameter.getJavaParameter().getType());
-            builder.append("--- @param ").append(pName).append(' ').append(pType);
 
-            if (yaml != null && yaml.hasNotes()) {
-              builder.append(' ').append(yaml.getNotes().replaceAll("\\n", ""));
+            builder.append("--- @return ").append(getTypeLuaName(method.getReturnType()));
+            if (yamlFirst != null) {
+                RosettaReturns yamlReturn = yamlFirst.getReturns();
+                if (yamlReturn.hasNotes()) {
+                    builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
+                }
             }
 
             builder.append('\n');
 
-            paramBuilder.append(pName).append(", ");
-          }
-          paramBuilder.setLength(paramBuilder.length() - 2);
-        }
-
-        builder.append("--- @return ").append(getTypeLuaName(first.getReturnType()));
-        if (yamlFirst != null) {
-          RosettaReturns yamlReturn = yamlFirst.getReturns();
-          if (yamlReturn.hasNotes()) {
-            builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
-          }
-        }
-
-        builder.append('\n');
-
-        boolean deprecated = first.isDeprecated();
-
-        if (cluster.hasOverloads()) {
-          for (int index = 1; index < methods.size(); index++) {
-            CandleMethod overload = methods.get(index);
-            RosettaMethod yaml = overload.getDocs();
-
-            // all overloads must be deprecated to mark the function as deprecated
-            deprecated = deprecated && overload.isDeprecated();
-
-            boolean isStatic = overload.isStatic();
-
-            builder.append("--- @overload fun(");
-
-            boolean hasParams = false;
-            if (!isStatic) {
-              builder.append("self: ").append(classNameLegalCurrent).append(", ");
-              hasParams = true;
+            if (method.isDeprecated()) {
+                builder.append("--- @deprecated\n");
             }
 
-            if (overload.hasParameters()) {
-              hasParams = true;
-              List<CandleParameter> parameters = overload.getParameters();
-              for (CandleParameter parameter : parameters) {
+            String methodName = method.getLuaName();
+            if (illegalIdentifiers.contains(methodName)) {
                 builder
-                    .append(parameter.getLuaName())
-                    .append(": ")
-                    .append(getTypeLuaName(parameter.getJavaParameter().getType()))
-                    .append(", ");
-              }
+                        .append(classNameLegalCurrent)
+                        .append("[\"")
+                        .append(methodName)
+                        .append("\"] = function(")
+                        .append(method.isStatic() ? "" : "self, ")
+                        .append(paramBuilder)
+                        .append(") end");
+            } else {
+                builder
+                        .append("function ")
+                        .append(classNameLegalCurrent)
+                        .append(method.isStatic() ? '.' : ':')
+                        .append(methodName)
+                        .append("(")
+                        .append(paramBuilder)
+                        .append(") end");
             }
-            if (hasParams) {
-              builder.setLength(builder.length() - 2);
-            }
-            builder.append("): ");
-
-            builder.append(getTypeLuaName(overload.getReturnType()));
-
-            if (yaml != null) {
-              RosettaReturns yamlReturn = yaml.getReturns();
-              if (yamlReturn.hasNotes()) {
-                builder.append(' ').append(yamlReturn.getNotes().replaceAll("\\n", ""));
-              }
-            }
-
-            builder.append('\n');
-          }
+            builder.append('\n').append('\n');
         }
-
-        if (deprecated) {
-            builder.append("--- @deprecated\n");
-        }
-
-        String methodName = cluster.getLuaName();
-        if (illegalIdentifiers.contains(methodName)) {
-          builder
-                  .append(classNameLegalCurrent)
-                  .append("[\"")
-                  .append(methodName)
-                  .append("\"] = function(")
-                  .append(first.isStatic() ? "" : "self, ")
-                  .append(paramBuilder)
-                  .append(") end");
-        } else {
-          builder
-                  .append("function ")
-                  .append(classNameLegalCurrent)
-                  .append(first.isStatic() ? '.' : ':')
-                  .append(methodName)
-                  .append("(")
-                  .append(paramBuilder)
-                  .append(") end");
-        }
-
         String resultCode = builder.toString();
         cluster.setRenderedCode(resultCode);
         return resultCode;
@@ -362,11 +294,8 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         keysSorted.sort(Comparator.naturalOrder());
         for (String fieldName : keysSorted) {
           builder
-              .append(methodRenderer.onRender(methodsStatic.get(fieldName)))
-              .append('\n')
-              .append('\n');
+              .append(methodRenderer.onRender(methodsStatic.get(fieldName)));
         }
-        builder.append('\n');
       }
 
       if (!methods.isEmpty()) {
@@ -376,19 +305,16 @@ public class EmmyLuaRenderer implements CandleRenderAdapter {
         List<String> keysSorted = new ArrayList<>(methods.keySet());
         keysSorted.sort(Comparator.naturalOrder());
         for (String fieldName : keysSorted) {
-          builder.append(methodRenderer.onRender(methods.get(fieldName))).append('\n').append('\n');
+          builder.append(methodRenderer.onRender(methods.get(fieldName)));
         }
-        builder.append('\n');
       }
 
       if (candleClass.hasConstructors()) {
         builder.append("------------------------------------\n");
-        builder.append("----------- CONSTRUCTOR ------------\n");
+        builder.append("----------- CONSTRUCTORS -----------\n");
         builder.append("------------------------------------\n\n");
 
-        CandleExecutableCluster<CandleConstructor> cluster = candleClass.getConstructors();
-        builder.append(constructorRenderer.onRender(cluster));
-        builder.append('\n');
+        builder.append(constructorRenderer.onRender(candleClass.getConstructors()));
       }
 
       return builder.toString();
