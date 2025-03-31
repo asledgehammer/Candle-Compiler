@@ -6,12 +6,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("unchecked")
-public class RosettaReturns extends RosettaEntity {
+public class RosettaReturn extends RosettaEntity {
 
   @NotNull RosettaType type;
   @Nullable String notes;
 
-  RosettaReturns(Map<String, Object> raw) {
+  RosettaReturn(Map<String, Object> raw) {
     super(raw);
 
     if (!raw.containsKey("type")) {

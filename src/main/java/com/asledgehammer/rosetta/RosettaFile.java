@@ -10,7 +10,7 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class RosettaFile extends RosettaEntity {
 
-    private final Map<String, RosettaNamespace> namespaces = new HashMap<>();
+    private final Map<String, RosettaPackage> packages = new HashMap<>();
     private final Map<String, RosettaMethodCluster> methods = new HashMap<>();
     private final Rosetta rosetta;
 
@@ -44,16 +44,16 @@ public class RosettaFile extends RosettaEntity {
             Map<String, Object> rawNamespaces = (Map<String, Object>) raw.get("namespaces");
             for (String name : rawNamespaces.keySet()) {
                 Map<String, Object> rawNamespace = (Map<String, Object>) rawNamespaces.get(name);
-                RosettaNamespace namespace = rosetta.getNamespace(name);
+                RosettaPackage pkg = rosetta.getPackage(name);
 
-                if (namespace == null) {
-                    namespace = new RosettaNamespace(name, rawNamespace);
-                    rosetta.addNamespace(namespace);
+                if (pkg == null) {
+                    pkg = new RosettaPackage(name, rawNamespace);
+                    rosetta.addPackage(pkg);
                 } else {
-                    namespace.parse(rawNamespace);
+                    pkg.parse(rawNamespace);
                 }
 
-                this.namespaces.put(name, namespace);
+                this.packages.put(name, pkg);
             }
         }
     }
@@ -89,17 +89,17 @@ public class RosettaFile extends RosettaEntity {
 
     @Override
     public String toString() {
-        return "RosettaFile{" + "namespaces=" + namespaces + '}';
+        return "RosettaFile{" + "packages=" + packages + '}';
     }
 
     @NotNull
-    public Map<String, RosettaNamespace> getNamespaces() {
-        return this.namespaces;
+    public Map<String, RosettaPackage> getPackages() {
+        return this.packages;
     }
 
     @Nullable
-    public RosettaNamespace getNamespace(@NotNull String id) {
-        return this.namespaces.get(id);
+    public RosettaPackage getPackage(@NotNull String id) {
+        return this.packages.get(id);
     }
 
     public Map<String, Object> toJSON() {
@@ -121,14 +121,14 @@ public class RosettaFile extends RosettaEntity {
         }
 
         // NAMESPACES
-        if (!this.namespaces.isEmpty()) {
+        if (!this.packages.isEmpty()) {
             Map<String, Object> mapNamespaces = new HashMap<>();
 
-            List<String> listNamespaceNames = new ArrayList<>(this.namespaces.keySet());
+            List<String> listNamespaceNames = new ArrayList<>(this.packages.keySet());
             listNamespaceNames.sort(Comparator.naturalOrder());
 
             for (String namespaceName : listNamespaceNames) {
-                mapNamespaces.put(namespaceName, this.namespaces.get(namespaceName).toJSON());
+                mapNamespaces.put(namespaceName, this.packages.get(namespaceName).toJSON());
             }
             mapFile.put("namespaces", mapNamespaces);
         }

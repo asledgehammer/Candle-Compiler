@@ -6,12 +6,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 @SuppressWarnings("unchecked")
-public class RosettaNamespace extends RosettaEntity {
+public class RosettaPackage extends RosettaEntity {
 
     private final Map<String, RosettaClass> classes = new HashMap<>();
     private final String name;
 
-    RosettaNamespace(@NotNull String name, @NotNull Map<String, Object> raw) {
+    RosettaPackage(@NotNull String name, @NotNull Map<String, Object> raw) {
         super(raw);
 
         this.name = name;

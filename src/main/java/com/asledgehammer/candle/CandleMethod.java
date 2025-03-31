@@ -107,7 +107,7 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
     }
 
     // RETURNS
-    RosettaReturns returns = this.docs.getReturns();
+    RosettaReturn returns = this.docs.getReturn();
     RosettaType rType = returns.getType();
     if (rType.hasFull()) {
       return rType.matches(this.getFullReturnType(), this.getBasicReturnType());
