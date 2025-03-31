@@ -19,15 +19,30 @@ public class RosettaFile extends RosettaEntity {
 
         this.rosetta = rosetta;
 
+        if(!raw.containsKey("version") || !raw.get("version").equals("1.1")) {
+            // TODO: this error is kind of useless, there needs to be an indication of what file
+            throw new RuntimeException("File is not a Rosetta file or is not a supported version.");
+        }
+
+        if (!raw.containsKey("languages")) {
+            return;
+        }
+
+        Map<String, Object> languages = (Map<String, Object>) raw.get("languages");
+
+        if (!languages.containsKey("java")) {
+            return;
+        }
+
+        Map<String, Object> java = (Map<String, Object>) languages.get("java");
+
         /* METHODS */
-        if (raw.containsKey("methods")) {
-            List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) raw.get("methods");
+        if (java.containsKey("methods")) {
+            List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) java.get("methods");
             for (Map<String, Object> rawMethod : rawMethods) {
                 RosettaMethod method = new RosettaMethod(rawMethod);
                 String methodName = method.getName();
-                if (methodName.equals("triggerEvent")) {
-                    System.out.println(method.asJavaString("### "));
-                }
+
                 RosettaMethodCluster cluster;
                 if (methods.containsKey(methodName)) {
                     cluster = methods.get(methodName);
@@ -40,8 +55,8 @@ public class RosettaFile extends RosettaEntity {
         }
 
         /* NAMESPACES */
-        if (raw.containsKey("namespaces")) {
-            Map<String, Object> rawNamespaces = (Map<String, Object>) raw.get("namespaces");
+        if (java.containsKey("packages")) {
+            Map<String, Object> rawNamespaces = (Map<String, Object>) java.get("packages");
             for (String name : rawNamespaces.keySet()) {
                 Map<String, Object> rawNamespace = (Map<String, Object>) rawNamespaces.get(name);
                 RosettaPackage pkg = rosetta.getPackage(name);

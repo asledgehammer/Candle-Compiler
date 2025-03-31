@@ -158,15 +158,15 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
     // RETURNS
     Map<String, Object> mapReturns = new HashMap<>();
 
-    // RETURNS TYPE
-    Map<String, Object> mapReturnsType = new HashMap<>();
+    // RETURN TYPE
+    Map<String, Object> mapReturnType = new HashMap<>();
     String fullType = this.getFullReturnType();
     String basicType = CandleUtils.asBasicType(fullType);
-    mapReturnsType.put("full", fullType);
-    mapReturnsType.put("basic", basicType);
-    mapReturns.put("type", mapReturnsType);
+    mapReturnType.put("full", fullType);
+    mapReturnType.put("basic", basicType);
+    mapReturns.put("type", mapReturnType);
 
-    mapMethod.put("returns", mapReturns);
+    mapMethod.put("return", mapReturns);
 
     return mapMethod;
   }

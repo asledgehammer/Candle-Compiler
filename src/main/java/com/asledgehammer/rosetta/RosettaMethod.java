@@ -33,11 +33,11 @@ public class RosettaMethod extends RosettaEntity {
             }
         }
 
-        /* RETURNS */
-        if (!raw.containsKey("returns")) {
-            throw new RuntimeException("Method does not have returns definition: " + this.name);
+        /* RETURN */
+        if (!raw.containsKey("return")) {
+            throw new RuntimeException("Method does not have return definition: " + this.name);
         }
-        this.returns = new RosettaReturns((Map<String, Object>) raw.get("returns"));
+        this.returns = new RosettaReturn((Map<String, Object>) raw.get("return"));
     }
 
     @NotNull
@@ -93,7 +93,7 @@ public class RosettaMethod extends RosettaEntity {
         }
 
         // RETURNS
-        mapMethod.put("returns", this.returns.toJSON());
+        mapMethod.put("return", this.returns.toJSON());
 
         // NOTES
         mapMethod.put("notes", this.notes);
