@@ -10,7 +10,7 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public class RosettaFile extends RosettaEntity {
 
-    private final Map<String, RosettaNamespace> namespaces = new HashMap<>();
+    private final Map<String, RosettaPackage> packages = new HashMap<>();
     private final Map<String, RosettaMethodCluster> methods = new HashMap<>();
     private final Rosetta rosetta;
 
@@ -19,15 +19,30 @@ public class RosettaFile extends RosettaEntity {
 
         this.rosetta = rosetta;
 
+        if(!raw.containsKey("version") || !raw.get("version").equals("1.1")) {
+            // TODO: this error is kind of useless, there needs to be an indication of what file
+            throw new RuntimeException("File is not a Rosetta file or is not a supported version.");
+        }
+
+        if (!raw.containsKey("languages")) {
+            return;
+        }
+
+        Map<String, Object> languages = (Map<String, Object>) raw.get("languages");
+
+        if (!languages.containsKey("java")) {
+            return;
+        }
+
+        Map<String, Object> java = (Map<String, Object>) languages.get("java");
+
         /* METHODS */
-        if (raw.containsKey("methods")) {
-            List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) raw.get("methods");
+        if (java.containsKey("methods")) {
+            List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) java.get("methods");
             for (Map<String, Object> rawMethod : rawMethods) {
                 RosettaMethod method = new RosettaMethod(rawMethod);
                 String methodName = method.getName();
-                if (methodName.equals("triggerEvent")) {
-                    System.out.println(method.asJavaString("### "));
-                }
+
                 RosettaMethodCluster cluster;
                 if (methods.containsKey(methodName)) {
                     cluster = methods.get(methodName);
@@ -40,20 +55,20 @@ public class RosettaFile extends RosettaEntity {
         }
 
         /* NAMESPACES */
-        if (raw.containsKey("namespaces")) {
-            Map<String, Object> rawNamespaces = (Map<String, Object>) raw.get("namespaces");
+        if (java.containsKey("packages")) {
+            Map<String, Object> rawNamespaces = (Map<String, Object>) java.get("packages");
             for (String name : rawNamespaces.keySet()) {
                 Map<String, Object> rawNamespace = (Map<String, Object>) rawNamespaces.get(name);
-                RosettaNamespace namespace = rosetta.getNamespace(name);
+                RosettaPackage pkg = rosetta.getPackage(name);
 
-                if (namespace == null) {
-                    namespace = new RosettaNamespace(name, rawNamespace);
-                    rosetta.addNamespace(namespace);
+                if (pkg == null) {
+                    pkg = new RosettaPackage(name, rawNamespace);
+                    rosetta.addPackage(pkg);
                 } else {
-                    namespace.parse(rawNamespace);
+                    pkg.parse(rawNamespace);
                 }
 
-                this.namespaces.put(name, namespace);
+                this.packages.put(name, pkg);
             }
         }
     }
@@ -89,17 +104,17 @@ public class RosettaFile extends RosettaEntity {
 
     @Override
     public String toString() {
-        return "RosettaFile{" + "namespaces=" + namespaces + '}';
+        return "RosettaFile{" + "packages=" + packages + '}';
     }
 
     @NotNull
-    public Map<String, RosettaNamespace> getNamespaces() {
-        return this.namespaces;
+    public Map<String, RosettaPackage> getPackages() {
+        return this.packages;
     }
 
     @Nullable
-    public RosettaNamespace getNamespace(@NotNull String id) {
-        return this.namespaces.get(id);
+    public RosettaPackage getPackage(@NotNull String id) {
+        return this.packages.get(id);
     }
 
     public Map<String, Object> toJSON() {
@@ -121,14 +136,14 @@ public class RosettaFile extends RosettaEntity {
         }
 
         // NAMESPACES
-        if (!this.namespaces.isEmpty()) {
+        if (!this.packages.isEmpty()) {
             Map<String, Object> mapNamespaces = new HashMap<>();
 
-            List<String> listNamespaceNames = new ArrayList<>(this.namespaces.keySet());
+            List<String> listNamespaceNames = new ArrayList<>(this.packages.keySet());
             listNamespaceNames.sort(Comparator.naturalOrder());
 
             for (String namespaceName : listNamespaceNames) {
-                mapNamespaces.put(namespaceName, this.namespaces.get(namespaceName).toJSON());
+                mapNamespaces.put(namespaceName, this.packages.get(namespaceName).toJSON());
             }
             mapFile.put("namespaces", mapNamespaces);
         }

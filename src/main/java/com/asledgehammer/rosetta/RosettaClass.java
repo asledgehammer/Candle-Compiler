@@ -42,15 +42,40 @@ public class RosettaClass extends RosettaEntity {
             }
         }
 
+        if (raw.containsKey("staticFields")) {
+            Map<String, Object> rawFields = (Map<String, Object>) raw.get("staticFields");
+
+            for (String fieldName : rawFields.keySet()) {
+                Map<String, Object> rawField = (Map<String, Object>) rawFields.get(fieldName);
+                RosettaField field = new RosettaField(fieldName, rawField);
+                fields.put(fieldName, field);
+            }
+        }
+
         /* METHODS */
         if (raw.containsKey("methods")) {
             List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) raw.get("methods");
             for (Map<String, Object> rawMethod : rawMethods) {
                 RosettaMethod method = new RosettaMethod(rawMethod);
                 String methodName = method.getName();
-                if (methodName.equals("triggerEvent")) {
-                    System.out.println(method.asJavaString("### "));
+
+                RosettaMethodCluster cluster;
+                if (methods.containsKey(methodName)) {
+                    cluster = methods.get(methodName);
+                } else {
+                    cluster = new RosettaMethodCluster(methodName);
+                    methods.put(methodName, cluster);
                 }
+                cluster.add(method);
+            }
+        }
+
+        if (raw.containsKey("staticMethods")) {
+            List<Map<String, Object>> rawMethods = (List<Map<String, Object>>) raw.get("staticMethods");
+            for (Map<String, Object> rawMethod : rawMethods) {
+                RosettaMethod method = new RosettaMethod(rawMethod);
+                String methodName = method.getName();
+
                 RosettaMethodCluster cluster;
                 if (methods.containsKey(methodName)) {
                     cluster = methods.get(methodName);

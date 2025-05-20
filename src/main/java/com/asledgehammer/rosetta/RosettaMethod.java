@@ -9,7 +9,7 @@ import java.util.*;
 public class RosettaMethod extends RosettaEntity {
 
     private final List<RosettaParameter> parameters = new ArrayList<>();
-    private final RosettaReturns returns;
+    private final RosettaReturn returns;
     private final String name;
     private final String notes;
     private final String[] modifiers;
@@ -33,11 +33,11 @@ public class RosettaMethod extends RosettaEntity {
             }
         }
 
-        /* RETURNS */
-        if (!raw.containsKey("returns")) {
-            throw new RuntimeException("Method does not have returns definition: " + this.name);
+        /* RETURN */
+        if (!raw.containsKey("return")) {
+            throw new RuntimeException("Method does not have return definition: " + this.name);
         }
-        this.returns = new RosettaReturns((Map<String, Object>) raw.get("returns"));
+        this.returns = new RosettaReturn((Map<String, Object>) raw.get("return"));
     }
 
     @NotNull
@@ -50,7 +50,7 @@ public class RosettaMethod extends RosettaEntity {
             }
         }
         stringBuilder
-                .append(this.getReturns().getType().getBasic())
+                .append(this.getReturn().getType().getBasic())
                 .append(' ')
                 .append(this.getName())
                 .append('(');
@@ -93,7 +93,7 @@ public class RosettaMethod extends RosettaEntity {
         }
 
         // RETURNS
-        mapMethod.put("returns", this.returns.toJSON());
+        mapMethod.put("return", this.returns.toJSON());
 
         // NOTES
         mapMethod.put("notes", this.notes);
@@ -116,7 +116,7 @@ public class RosettaMethod extends RosettaEntity {
     }
 
     @NotNull
-    public RosettaReturns getReturns() {
+    public RosettaReturn getReturn() {
         return this.returns;
     }
 

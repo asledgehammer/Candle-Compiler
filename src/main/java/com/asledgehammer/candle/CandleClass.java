@@ -243,12 +243,20 @@ public class CandleClass extends CandleEntity<CandleClass> {
     }
 
     // FIELDS
+    if (!this.fields.isEmpty()) {
+      Map<String, Object> mapFields = new HashMap<>();
+      for (CandleField field : this.fields.values()) {
+        mapFields.put(field.getLuaName(), field.getDocs().toJSON());
+      }
+      mapClass.put("fields", mapFields);
+    }
+
     if (!this.fieldsStatic.isEmpty()) {
       Map<String, Object> mapFields = new HashMap<>();
       for (CandleField field : this.fieldsStatic.values()) {
         mapFields.put(field.getLuaName(), field.getDocs().toJSON());
       }
-      mapClass.put("fields", mapFields);
+      mapClass.put("staticFields", mapFields);
     }
 
     // CONSTRUCTORS
@@ -269,6 +277,16 @@ public class CandleClass extends CandleEntity<CandleClass> {
         }
       }
       mapClass.put("methods", listMethods);
+    }
+
+    if (!this.methodsStatic.isEmpty()) {
+      List<Map<String, Object>> listMethods = new ArrayList<>();
+      for (CandleExecutableCluster<CandleMethod> cluster : this.methodsStatic.values()) {
+        for (CandleMethod method : cluster.getExecutables()) {
+          listMethods.add(method.getDocs().toJSON());
+        }
+      }
+      mapClass.put("staticMethods", listMethods);
     }
 
     return mapClass;

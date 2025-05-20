@@ -3,7 +3,6 @@ package com.asledgehammer.rosetta;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import se.krka.kahlua.integration.annotations.LuaMethod;
 import zombie.Lua.LuaManager;
 
 import java.io.File;
@@ -18,7 +17,7 @@ public class Rosetta {
   private static final Gson gson = new Gson();
 
   private final Map<String, RosettaFile> files = new HashMap<>();
-  private final Map<String, RosettaNamespace> namespaces = new HashMap<>();
+  private final Map<String, RosettaPackage> packages = new HashMap<>();
 
   public void addDirectory(@NotNull File dir) throws IOException {
     if (!dir.exists()) {
@@ -58,32 +57,32 @@ public class Rosetta {
   }
 
   @Nullable
-  public RosettaNamespace getNamespace(@NotNull Package pkg) {
-    return namespaces.get(pkg.getName());
+  public RosettaPackage getPackage(@NotNull Package pkg) {
+    return packages.get(pkg.getName());
   }
 
   @Nullable
-  public RosettaNamespace getNamespace(@NotNull String id) {
-    return namespaces.get(id);
+  public RosettaPackage getPackage(@NotNull String id) {
+    return packages.get(id);
   }
 
-  public void addNamespace(@NotNull RosettaNamespace namespace) {
-    this.namespaces.put(namespace.getName(), namespace);
+  public void addPackage(@NotNull RosettaPackage pkg) {
+    this.packages.put(pkg.getName(), pkg);
   }
 
   @Nullable
   public RosettaClass getClass(@NotNull Class<?> clazz) {
     final String namespaceName = clazz.getPackageName();
-    final RosettaNamespace namespace = getNamespace(namespaceName);
-    if (namespace == null) return null;
-    return namespace.getClass(clazz);
+    final RosettaPackage pkg = getPackage(namespaceName);
+    if (pkg == null) return null;
+    return pkg.getClass(clazz);
   }
 
   public void printNamespaces(@NotNull String prefix) {
-    final List<String> namespaceNames = new ArrayList<>(namespaces.keySet());
-    namespaceNames.sort(Comparator.naturalOrder());
-    System.out.println(prefix + "Namespace(s) Loaded: (size: " + namespaceNames.size() + ")");
-    for (String name : namespaceNames) System.out.println(prefix + "\t" + name);
+    final List<String> packageNames = new ArrayList<>(packages.keySet());
+    packageNames.sort(Comparator.naturalOrder());
+    System.out.println(prefix + "Namespace(s) Loaded: (size: " + packageNames.size() + ")");
+    for (String name : packageNames) System.out.println(prefix + "\t" + name);
   }
 
   @Override
@@ -97,8 +96,8 @@ public class Rosetta {
   }
 
   @NotNull
-  public Map<String, RosettaNamespace> getNamespaces() {
-    return this.namespaces;
+  public Map<String, RosettaPackage> getPackages() {
+    return this.packages;
   }
 
   public static void main(String[] yargs) throws IOException {
