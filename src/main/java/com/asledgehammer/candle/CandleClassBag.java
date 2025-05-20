@@ -1,24 +1,15 @@
 package com.asledgehammer.candle;
 
-import com.github.javaparser.JavaParser;
-import com.github.javaparser.ParseResult;
-import com.github.javaparser.ParserConfiguration;
-import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.NodeList;
-import com.github.javaparser.ast.body.BodyDeclaration;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
-import com.github.javaparser.ast.expr.ClassExpr;
-import com.github.javaparser.ast.expr.Expression;
-import com.github.javaparser.ast.expr.MethodCallExpr;
-import com.github.javaparser.ast.stmt.BlockStmt;
-import com.github.javaparser.ast.stmt.ExpressionStmt;
-import com.github.javaparser.ast.stmt.Statement;
-import com.github.javaparser.symbolsolver.JavaSymbolSolver;
-import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver;
+import org.objectweb.asm.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
+
 import se.krka.kahlua.vm.KahluaTable;
 import zombie.Lua.LuaManager;
 
@@ -31,95 +22,43 @@ public class CandleClassBag {
     classes.sort(Comparator.comparing(Class::getSimpleName));
   }
 
+  private void addClassesFromJar(Path jar) {
+    try (FileSystem gameJar = FileSystems.newFileSystem(jar)) {
+      Path exposerPath = gameJar.getPath("zombie", "Lua", "LuaManager$Exposer.class");
+      if (!Files.exists(exposerPath) || !Files.isRegularFile(exposerPath)) {
+        return;
+      }
+
+      ClassReader reader = new ClassReader(
+              Files.newInputStream(exposerPath)
+      );
+      reader.accept(new ClassVisitor(Opcodes.ASM9) {
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
+          if (name.equals("exposeAll")) {
+            return new ExposeMethodVisitor(
+                    api,
+                    super.visitMethod(access, name, descriptor, signature, exceptions)
+            );
+          }
+          return super.visitMethod(access, name, descriptor, signature, exceptions);
+        }
+      }, 0);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private void addClasses() {
     addClass(LuaManager.GlobalObject.class);
 
-    ParserConfiguration config = new ParserConfiguration();
-    config.setLanguageLevel(ParserConfiguration.LanguageLevel.BLEEDING_EDGE);
-    config.setSymbolResolver(new JavaSymbolSolver(new ReflectionTypeSolver(false)));
-    JavaParser parser = new JavaParser(config);
-
-    ParseResult<CompilationUnit> result;
-    try {
-      result = parser.parse(new File("./LuaManager.java"));
-    } catch(FileNotFoundException exception) {
-      exception.printStackTrace();
-      return;
-    }
-
-    if (!result.isSuccessful()) {
-      System.err.println("LuaManager.java could not be parsed.");
-      return;
-    }
-
-    assert(result.getResult().isPresent());
-    CompilationUnit unit = result.getResult().get();
-
-    Optional<ClassOrInterfaceDeclaration> luaManager = unit.getClassByName("LuaManager");
-    if (luaManager.isEmpty()) {
-      System.err.println("No such class LuaManager");
-      return;
-    }
-
-    ClassOrInterfaceDeclaration exposer = null;
-    for (BodyDeclaration<?> member : luaManager.get().getMembers()) {
-      if (!member.isClassOrInterfaceDeclaration()) continue;
-      ClassOrInterfaceDeclaration clazzDeclaration = member.asClassOrInterfaceDeclaration();
-
-      if (clazzDeclaration.getNameAsString().equals("Exposer")) {
-        exposer = member.asClassOrInterfaceDeclaration();
-        break;
-      }
-    }
-
-    if (exposer == null) {
-      System.err.println("zombie.Lua.LuaManager has no nested class Exposer.");
-      return;
-    }
-
-    List<MethodDeclaration> exposeAllList = exposer.getMethodsByName("exposeAll");
-    if (exposeAllList.isEmpty()) {
-      System.err.println("zombie.Lua.LuaManager.Exposer has no such method exposeAll().");
-      return;
-    }
-
-    Optional<BlockStmt> methodBody = exposeAllList.get(0).getBody();
-    if (methodBody.isEmpty()) {
-      System.err.println("Method zombie.Lua.LuaManager.Exposer.exposeAll() body is empty.");
-      return;
-    }
-
-    for (Statement statement: methodBody.get().getStatements()) {
-      if (!statement.isExpressionStmt()) continue;
-      Expression expression = ((ExpressionStmt)statement).getExpression();
-
-      if (!expression.isMethodCallExpr()) continue;
-      MethodCallExpr methodCall = (MethodCallExpr)expression;
-
-      if (!methodCall.getNameAsString().equals("setExposed")) continue;
-
-      NodeList<Expression> arguments = methodCall.getArguments();
-      if (arguments.isEmpty()) continue;
-      Expression arg = arguments.get(0);
-
-      // there's another method named setExposed called in this method with a different argument type
-      if (!arg.isClassExpr()) continue;
-      ClassExpr clazz = methodCall.getArguments().get(0).asClassExpr();
-
-      String typeName = clazz.getType().resolve().asReferenceType().getQualifiedName();
-
-      // convert . to $ in nested class names
-      String shortType = clazz.getTypeAsString();
-      if (shortType.contains(".")) {
-        typeName = typeName.substring(0, typeName.length() - shortType.length()) + shortType.replace('.', '$');
-      }
-
-      try {
-        Class<?> exposedClazz = Class.forName(typeName, false, this.getClass().getClassLoader());
-        addClass(exposedClazz);
-      } catch(ClassNotFoundException exception) {
-        System.out.println("Cannot find exposed type " + typeName);
-      }
+    // name of game jar was previously unspecified, so to maintain compatibility we must check all jars
+    try (Stream<Path> paths = Files.list(Path.of("lib"))) {
+      paths
+           .filter((path) -> path.getFileName().toString().endsWith(".jar"))
+           .forEach(this::addClassesFromJar);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -163,5 +102,41 @@ public class CandleClassBag {
         | clazz == void.class
         | clazz == Void.class
         | clazz == KahluaTable.class;
+  }
+
+  /// Method visitor that exposes classes exposed by the method.
+  private class ExposeMethodVisitor extends MethodVisitor {
+    protected ExposeMethodVisitor(int api, MethodVisitor methodVisitor) {
+      super(api, methodVisitor);
+    }
+
+    /// The class on the top of the stack.
+    Type topClass = null;
+
+    @Override
+    public void visitLdcInsn(Object value) {
+      if (value instanceof Type type) {
+        // this makes the assumption that any class pushed will not be removed before the next call to setExposed
+        // even though this is dumb, in practice for this limited usage it seems reliable
+        // there isn't any need to do anything else with class objects in that method
+        topClass = type;
+      }
+      super.visitLdcInsn(value);
+    }
+
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+      if (owner.equals("zombie/Lua/LuaManager$Exposer") && name.equals("setExposed")) {
+        assert topClass != null;
+        try {
+          Class<?> exposedClazz = Class.forName(topClass.getClassName(), false, this.getClass().getClassLoader());
+          addClass(exposedClazz);
+          topClass = null;
+        } catch(ClassNotFoundException exception) {
+          System.out.println("Cannot find exposed type " + topClass.getClassName());
+        }
+      }
+      super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+    }
   }
 }
