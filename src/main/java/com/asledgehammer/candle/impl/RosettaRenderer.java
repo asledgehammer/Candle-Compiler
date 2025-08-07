@@ -89,25 +89,30 @@ public class RosettaRenderer implements CandleRenderAdapter {
 
         for (CandleClass clazz : graph.classesSorted) {
 
-            String namespace = clazz.getClazz().getPackageName().replaceAll("\\.", "-");
-            String namespace2 = namespace.replaceAll("\\.", "-");
+            String packageName = clazz.getClazz().getPackageName();
 
-            File dirNamespace = new File(dir, namespace2);
-            if (!dirNamespace.exists() && !dirNamespace.mkdirs()) {
+            File dirPackage = new File(dir, packageName);
+            if (!dirPackage.exists() && !dirPackage.mkdirs()) {
                 throw new RuntimeException("Cannot create directory: " + dir.getPath());
             }
 
-            Map<String, Object> mapFile = new HashMap<>();
-            mapFile.put("$schema", "https://raw.githubusercontent.com/asledgehammer/PZ-Rosetta-Schema/main/rosetta-schema.json");
-            Map<String, Object> mapNamespaces = new HashMap<>();
-            Map<String, Object> mapNamespace = new HashMap<>();
-            mapNamespace.put(clazz.getLuaName(), clazz.getDocs().toJSON());
-            mapNamespaces.put(namespace, mapNamespace);
-            mapFile.put("namespaces", mapNamespaces);
+            // we are using a LinkedHashMap to preserve order of insertion
+            // order of insertion doesn't matter for the maps that only store one element anyway
+            Map<String, Object> mapFile = new LinkedHashMap<>();
+            Map<String, Object> mapLanguages = new HashMap<>();
+            Map<String, Object> mapJava = new HashMap<>();
+            Map<String, Object> mapPackages = new HashMap<>();
+            Map<String, Object> mapPackage = new HashMap<>();
+            mapFile.put("version", "1.1");
+            mapFile.put("languages", mapLanguages);
+            mapLanguages.put("java", mapJava);
+            mapJava.put("packages", mapPackages);
+            mapPackages.put(packageName, mapPackage);
+            mapPackage.put(clazz.getLuaName(), clazz.getDocs().toJSON());
 
             String json = gson.toJson(mapFile);
 
-            File file = new File(dirNamespace, clazz.getLuaName() + ".json");
+            File file = new File(dirPackage, clazz.getLuaName() + ".json");
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, json);
         }
@@ -118,7 +123,6 @@ public class RosettaRenderer implements CandleRenderAdapter {
         methods.putAll(candleGlobalObject.getMethods());
 
         Map<String, Object> mapFile = new HashMap<>();
-        mapFile.put("$schema", "https://raw.githubusercontent.com/asledgehammer/PZ-Rosetta-Schema/main/rosetta-schema.json");
 
         List<Map<String, Object>> listMethods = new ArrayList<>();
 
