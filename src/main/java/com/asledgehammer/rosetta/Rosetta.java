@@ -3,6 +3,8 @@ package com.asledgehammer.rosetta;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
 import zombie.Lua.LuaManager;
 
 import java.io.File;
@@ -15,6 +17,7 @@ import java.util.*;
 public class Rosetta {
 
   private static final Gson gson = new Gson();
+  private static final Yaml yaml = new Yaml(new LoaderOptions());
 
   private final Map<String, RosettaFile> files = new HashMap<>();
   private final Map<String, RosettaPackage> packages = new HashMap<>();
@@ -28,11 +31,29 @@ public class Rosetta {
     for (File file : yamlFiles) {
       System.out.println("Reading file: " + file.getPath() + "..");
       try (FileReader reader = new FileReader(file)) {
-        final RosettaFile rFile =
-            new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
+        final String extension = getFileExtension(file.getName().toLowerCase());
+        final RosettaFile rFile = switch (extension) {
+              case "json" -> new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
+              case "yml" -> new RosettaFile(this, yaml.load(reader));
+              default -> throw new UnsupportedOperationException("Cannot parse file type " + extension);
+          };
         files.put(file.getPath(), rFile);
       }
     }
+  }
+
+  /**
+   * Gets the file extension from a file name.
+   * @param fileName Name of the file.
+   * @return The file extension. An empty string is returned if the file name does not have one.
+   */
+  private @NotNull String getFileExtension(@NotNull final String fileName) {
+    final int extensionPos = (fileName.lastIndexOf("."));
+    if (extensionPos == -1) {
+      return "";
+    }
+
+    return fileName.substring(extensionPos + 1);
   }
 
   @NotNull
@@ -45,10 +66,16 @@ public class Rosetta {
     if (files == null) return list;
 
     for (File next : files) {
-      if (next.isDirectory() && !next.getName().equals("..")) {
-        list.addAll(getFilesFromDir(next));
+      if (next.isDirectory()) {
+        if (!next.getName().equals("..")) {
+          list.addAll(getFilesFromDir(next));
+        }
+        continue;
       }
-      if (next.getName().toLowerCase().endsWith(".json")) {
+
+      final String extension = getFileExtension(next.getName().toLowerCase());
+
+      if (extension.equals("json") || extension.equals("yml")) {
         list.add(next);
       }
     }
