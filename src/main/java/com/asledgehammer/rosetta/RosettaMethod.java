@@ -71,7 +71,7 @@ public class RosettaMethod extends RosettaEntity {
 
     @NotNull
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapMethod = new HashMap<>();
+        Map<String, Object> mapMethod = new LinkedHashMap<>();
 
         // NAME
         mapMethod.put("name", this.getName());

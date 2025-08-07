@@ -1,6 +1,6 @@
 package com.asledgehammer.rosetta;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +59,7 @@ public class RosettaParameter extends RosettaEntity {
     }
 
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapParameter = new HashMap<>();
+        Map<String, Object> mapParameter = new LinkedHashMap<>();
         mapParameter.put("name", this.name);
         mapParameter.put("type", this.type.toJSON());
         mapParameter.put("notes", this.notes);

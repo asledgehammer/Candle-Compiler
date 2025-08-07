@@ -43,7 +43,7 @@ public class RosettaField extends RosettaEntity {
   }
 
   public Map<String, Object> toJSON() {
-    Map<String, Object> mapField = new HashMap<>();
+    Map<String, Object> mapField = new LinkedHashMap<>();
 
     // NAME
     mapField.put("name", getName());

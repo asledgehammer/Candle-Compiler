@@ -66,7 +66,7 @@ public class RosettaConstructor extends RosettaEntity {
 
     @NotNull
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapMethod = new HashMap<>();
+        Map<String, Object> mapMethod = new LinkedHashMap<>();
 
         // MODIFIERS
         if(this.modifiers.length != 0) {

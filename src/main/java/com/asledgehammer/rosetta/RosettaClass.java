@@ -249,7 +249,7 @@ public class RosettaClass extends RosettaEntity {
     }
 
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapClass = new HashMap<>();
+        Map<String, Object> mapClass = new LinkedHashMap<>();
 
         // MODIFIERS
         if(this.modifiers.length != 0) {
@@ -260,7 +260,7 @@ public class RosettaClass extends RosettaEntity {
 
         // FIELDS
         if (!this.fields.isEmpty()) {
-            Map<String, Object> mapFields = new HashMap<>();
+            Map<String, Object> mapFields = new LinkedHashMap<>();
 
             List<String> listFieldNames = new ArrayList<>(this.fields.keySet());
             listFieldNames.sort(Comparator.naturalOrder());
