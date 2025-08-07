@@ -30,7 +30,9 @@ public class RosettaType extends RosettaEntity {
         if (nullable != null) {
             this.nullable = nullable;
         } else {
-            this.nullable = isNullPossible(this.basic);
+            // i disabled isNullPossible here
+            //  because i don't want it to flood rosetta with nullable = true when it isn't really known
+            this.nullable = false; // isNullPossible(this.basic);
         }
         this.full = readString("full");
     }
@@ -63,7 +65,9 @@ public class RosettaType extends RosettaEntity {
         Map<String, Object> mapType = new HashMap<>();
         mapType.put("basic", this.basic);
         mapType.put("full", this.full);
-        mapType.put("nullable", this.nullable);
+        if (this.nullable) {
+            mapType.put("nullable", true);
+        }
         return mapType;
     }
 
