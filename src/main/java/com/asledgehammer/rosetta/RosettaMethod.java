@@ -95,6 +95,10 @@ public class RosettaMethod extends RosettaEntity {
         // RETURNS
         mapMethod.put("return", this.returns.toJSON());
 
+        if (this.deprecated) {
+            mapMethod.put("deprecated", true);
+        }
+
         // NOTES
         mapMethod.put("notes", this.notes);
 

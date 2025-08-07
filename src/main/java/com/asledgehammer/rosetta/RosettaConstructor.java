@@ -84,6 +84,10 @@ public class RosettaConstructor extends RosettaEntity {
             mapMethod.put("parameters", mapParameters);
         }
 
+        if (this.deprecated) {
+            mapMethod.put("deprecated", true);
+        }
+
         // NOTES
         mapMethod.put("notes", this.notes);
 

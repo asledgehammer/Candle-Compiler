@@ -59,7 +59,9 @@ public class RosettaField extends RosettaEntity {
     mapField.put("type", this.type.toJSON());
 
     // DEPRECATED FLAG
-    mapField.put("deprecated", this.deprecated);
+    if (this.deprecated) {
+      mapField.put("deprecated", true);
+    }
 
     // NOTES
     mapField.put("notes", this.notes);
