@@ -98,4 +98,8 @@ public class RosettaField extends RosettaEntity {
   public boolean isDeprecated() {
     return this.deprecated;
   }
+
+  public boolean isStatic() {
+    return Arrays.asList(this.modifiers).contains("static");
+  }
 }

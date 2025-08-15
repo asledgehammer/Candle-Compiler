@@ -142,4 +142,8 @@ public class RosettaMethod extends RosettaEntity {
     public String[] getModifiers() {
         return this.modifiers;
     }
+
+    public boolean isStatic() {
+        return Arrays.asList(this.modifiers).contains("static");
+    }
 }
