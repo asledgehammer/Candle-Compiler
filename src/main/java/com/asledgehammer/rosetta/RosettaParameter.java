@@ -62,7 +62,9 @@ public class RosettaParameter extends RosettaEntity {
         Map<String, Object> mapParameter = new LinkedHashMap<>();
         mapParameter.put("name", this.name);
         mapParameter.put("type", this.type.toJSON());
-        mapParameter.put("notes", this.notes);
+        if (this.notes != null) {
+            mapParameter.put("notes", this.notes);
+        }
         return mapParameter;
     }
 }

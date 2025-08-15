@@ -306,7 +306,9 @@ public class RosettaClass extends RosettaEntity {
         }
 
         // NOTES
-        mapClass.put("notes", this.notes);
+        if (this.notes != null) {
+            mapClass.put("notes", this.notes);
+        }
 
         return mapClass;
     }

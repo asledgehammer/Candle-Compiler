@@ -100,7 +100,9 @@ public class RosettaMethod extends RosettaEntity {
         }
 
         // NOTES
-        mapMethod.put("notes", this.notes);
+        if (this.notes != null) {
+            mapMethod.put("notes", this.notes);
+        }
 
         return mapMethod;
     }

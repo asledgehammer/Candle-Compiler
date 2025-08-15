@@ -64,7 +64,9 @@ public class RosettaField extends RosettaEntity {
     }
 
     // NOTES
-    mapField.put("notes", this.notes);
+    if (this.notes != null) {
+      mapField.put("notes", this.notes);
+    }
 
     return mapField;
   }

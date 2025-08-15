@@ -43,7 +43,9 @@ public class RosettaReturn extends RosettaEntity {
   public Map<String, Object> toJSON() {
     Map<String, Object> mapReturns = new LinkedHashMap<>();
     mapReturns.put("type", this.type.toJSON());
-    mapReturns.put("notes", this.notes);
+    if (this.notes != null) {
+      mapReturns.put("notes", this.notes);
+    }
     return mapReturns;
   }
 }
