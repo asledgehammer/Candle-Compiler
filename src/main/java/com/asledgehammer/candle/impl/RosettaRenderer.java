@@ -107,32 +107,6 @@ public class RosettaRenderer implements CandleRenderAdapter {
         return mapFile;
     }
 
-    /**
-     * Builds a map Rosetta representation of the global namespace.
-     * @param graph The graph to search for globals in.
-     * @return A Rosetta-formatted map describing globals.
-     */
-    private @NotNull Map<String, Object> globalsToMap(@NotNull CandleGraph graph) {
-        CandleClass candleGlobalObject = graph.classes.get(LuaManager.GlobalObject.class);
-        Map<String, CandleExecutableCluster<CandleMethod>> methods =
-                new HashMap<>(candleGlobalObject.getStaticMethods());
-        methods.putAll(candleGlobalObject.getMethods());
-
-        Map<String, Object> mapFile = new HashMap<>();
-
-        List<Map<String, Object>> listMethods = new ArrayList<>();
-
-        for (CandleExecutableCluster<CandleMethod> cluster : methods.values()) {
-            for (CandleMethod method : cluster.getExecutables()) {
-                listMethods.add(method.getDocs().toJSON());
-            }
-        }
-
-        mapFile.put("methods", listMethods);
-
-        return mapFile;
-    }
-
     public void saveJSON(CandleGraph graph, File dir) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -154,12 +128,6 @@ public class RosettaRenderer implements CandleRenderAdapter {
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, json);
         }
-
-        String json = gson.toJson(globalsToMap(graph));
-
-        File file = new File(dir, "global.json");
-        System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
-        CandleGraph.write(file, json);
     }
 
     public void saveYAML(@NotNull CandleGraph graph, @NotNull File dir) {
@@ -186,11 +154,5 @@ public class RosettaRenderer implements CandleRenderAdapter {
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, yml);
         }
-
-        String yml = yaml.dump(globalsToMap(graph));
-
-        File file = new File(dir, "global.yml");
-        System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
-        CandleGraph.write(file, yml);
     }
 }
