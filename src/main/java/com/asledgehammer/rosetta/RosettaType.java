@@ -64,7 +64,9 @@ public class RosettaType extends RosettaEntity {
     public Map<String, Object> toJSON() {
         Map<String, Object> mapType = new LinkedHashMap<>();
         mapType.put("basic", this.basic);
-        mapType.put("full", this.full);
+        if (this.full != null) {
+            mapType.put("full", this.full);
+        }
         if (this.nullable) {
             mapType.put("nullable", true);
         }
