@@ -4,9 +4,9 @@ import com.asledgehammer.candle.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.yaml.snakeyaml.DumperOptions;
-import org.yaml.snakeyaml.Yaml;
-import zombie.Lua.LuaManager;
+import org.snakeyaml.engine.v2.api.Dump;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.io.File;
 import java.util.*;
@@ -124,17 +124,17 @@ public class RosettaRenderer implements CandleRenderAdapter {
 
             String json = gson.toJson(classToMap(clazz));
 
-            File file = new File(dirPackage, clazz.getLuaName() + ".json");
+            File file = new File(dirPackage, clazz.getDocs().getName() + ".json");
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, json);
         }
     }
 
     public void saveYAML(@NotNull CandleGraph graph, @NotNull File dir) {
-        DumperOptions options = new DumperOptions();
-        options.setPrettyFlow(true);
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        Yaml yaml = new Yaml(options);
+        DumpSettings settings = DumpSettings.builder()
+                .setDefaultFlowStyle(FlowStyle.BLOCK)
+                .build();
+        Dump yaml = new Dump(settings);
 
         if (!dir.exists() && !dir.mkdirs()) {
             throw new RuntimeException("Cannot create directory: " + dir.getPath());
@@ -148,7 +148,7 @@ public class RosettaRenderer implements CandleRenderAdapter {
                 throw new RuntimeException("Cannot create directory: " + dir.getPath());
             }
 
-            String yml = yaml.dump(classToMap(clazz));
+            String yml = yaml.dumpToString(classToMap(clazz));
 
             File file = new File(dirPackage, clazz.getLuaName() + ".yml");
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
