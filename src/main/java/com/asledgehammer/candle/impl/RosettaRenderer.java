@@ -102,7 +102,7 @@ public class RosettaRenderer implements CandleRenderAdapter {
         mapLanguages.put("java", mapJava);
         mapJava.put("packages", mapPackages);
         mapPackages.put(packageName, mapPackage);
-        mapPackage.put(clazz.getLuaName(), clazz.getDocs().toJSON());
+        mapPackage.put(clazz.getDocs().getName(), clazz.getDocs().toJSON());
 
         return mapFile;
     }
@@ -150,7 +150,7 @@ public class RosettaRenderer implements CandleRenderAdapter {
 
             String yml = yaml.dumpToString(classToMap(clazz));
 
-            File file = new File(dirPackage, clazz.getLuaName() + ".yml");
+            File file = new File(dirPackage, clazz.getDocs().getName() + ".yml");
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, yml);
         }

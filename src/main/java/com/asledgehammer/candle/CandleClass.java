@@ -351,7 +351,11 @@ public class CandleClass extends CandleEntity<CandleClass> {
   @NotNull
   public RosettaClass getDocs() {
     if (this.docs == null) {
-      this.docs = new RosettaClass(getLuaName(), genDocs());
+      String clazzName = this.getClazz().getName();
+      clazzName = clazzName.substring(clazzName.lastIndexOf(".") + 1).replace("$", ".");
+
+      this.docs = new RosettaClass(clazzName, genDocs());
+
       if (this.hasConstructors()) {
         for (CandleConstructor constructor : getConstructors().getExecutables()) {
           constructor.getDocs().clazz = this.docs;
