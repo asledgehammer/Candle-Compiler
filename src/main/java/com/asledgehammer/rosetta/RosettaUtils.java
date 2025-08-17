@@ -28,13 +28,6 @@ public class RosettaUtils {
         "true",
         "until",
         "while",
-
-        // NOTE: This is a technical issue involving YAML interpreting
-        //       this as a BOOLEAN not a STRING value.
-        "on",
-        "off",
-        "yes",
-        "no",
       };
 
   public static String formatName(@NotNull String name) {
