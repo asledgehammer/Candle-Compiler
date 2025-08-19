@@ -9,6 +9,9 @@ import org.snakeyaml.engine.v2.api.DumpSettings;
 import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class RosettaRenderer implements CandleRenderAdapter {
@@ -130,27 +133,40 @@ public class RosettaRenderer implements CandleRenderAdapter {
         }
     }
 
-    public void saveYAML(@NotNull CandleGraph graph, @NotNull File dir) {
+    public void saveYAML(@NotNull CandleGraph graph, @NotNull Path dir) {
         DumpSettings settings = DumpSettings.builder()
                 .setDefaultFlowStyle(FlowStyle.BLOCK)
                 .build();
         Dump yaml = new Dump(settings);
 
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new RuntimeException("Cannot create directory: " + dir.getPath());
+
+        if (!Files.exists(dir)) {
+            try {
+                Files.createDirectories(dir);
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot create directory: " + dir);
+            }
         }
 
         for (CandleClass clazz : graph.classesSorted) {
             String packageName = clazz.getClazz().getPackageName();
 
-            File dirPackage = new File(dir, packageName);
-            if (!dirPackage.exists() && !dirPackage.mkdirs()) {
-                throw new RuntimeException("Cannot create directory: " + dir.getPath());
+            Path dirPackage = dir;
+            for (String pathElement : packageName.split("\\.")) {
+                dirPackage = dirPackage.resolve(pathElement);
+            }
+
+            if (!Files.exists(dirPackage)) {
+                try {
+                    Files.createDirectories(dirPackage);
+                } catch (IOException e) {
+                    throw new RuntimeException("Cannot create directory: " + dir);
+                }
             }
 
             String yml = yaml.dumpToString(classToMap(clazz));
 
-            File file = new File(dirPackage, clazz.getDocs().getName() + ".yml");
+            File file = dirPackage.resolve(clazz.getDocs().getName() + ".yml").toFile();
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, yml);
         }
