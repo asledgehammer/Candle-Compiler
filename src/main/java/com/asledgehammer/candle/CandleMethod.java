@@ -168,6 +168,10 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
     mapMethod.put("return", mapReturns);
 
+    if (this.isDeprecated()) {
+      mapMethod.put("deprecated", true);
+    }
+
     return mapMethod;
   }
 }

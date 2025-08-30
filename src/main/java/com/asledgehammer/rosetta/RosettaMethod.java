@@ -71,7 +71,7 @@ public class RosettaMethod extends RosettaEntity {
 
     @NotNull
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapMethod = new HashMap<>();
+        Map<String, Object> mapMethod = new LinkedHashMap<>();
 
         // NAME
         mapMethod.put("name", this.getName());
@@ -95,8 +95,14 @@ public class RosettaMethod extends RosettaEntity {
         // RETURNS
         mapMethod.put("return", this.returns.toJSON());
 
+        if (this.deprecated) {
+            mapMethod.put("deprecated", true);
+        }
+
         // NOTES
-        mapMethod.put("notes", this.notes);
+        if (this.notes != null) {
+            mapMethod.put("notes", this.notes);
+        }
 
         return mapMethod;
     }
@@ -135,5 +141,9 @@ public class RosettaMethod extends RosettaEntity {
 
     public String[] getModifiers() {
         return this.modifiers;
+    }
+
+    public boolean isStatic() {
+        return Arrays.asList(this.modifiers).contains("static");
     }
 }

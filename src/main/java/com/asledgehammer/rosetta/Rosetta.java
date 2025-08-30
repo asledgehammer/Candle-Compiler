@@ -3,54 +3,84 @@ package com.asledgehammer.rosetta;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.snakeyaml.engine.v2.api.Load;
+import org.snakeyaml.engine.v2.api.LoadSettings;
 import zombie.Lua.LuaManager;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"unchecked", "unused"})
 public class Rosetta {
 
   private static final Gson gson = new Gson();
+  private static final Load yaml = new Load(LoadSettings.builder().build());
 
   private final Map<String, RosettaFile> files = new HashMap<>();
   private final Map<String, RosettaPackage> packages = new HashMap<>();
 
-  public void addDirectory(@NotNull File dir) throws IOException {
-    if (!dir.exists()) {
-      throw new FileNotFoundException("Directory doesn't exist: " + dir.getPath());
+  public void addDirectory(@NotNull Path dir) throws IOException {
+    if (!Files.exists(dir) || !Files.isDirectory(dir)) {
+      throw new FileNotFoundException("Directory doesn't exist: " + dir);
     }
 
-    final List<File> yamlFiles = getFilesFromDir(dir);
-    for (File file : yamlFiles) {
-      System.out.println("Reading file: " + file.getPath() + "..");
-      try (FileReader reader = new FileReader(file)) {
-        final RosettaFile rFile =
-            new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
-        files.put(file.getPath(), rFile);
+    final List<Path> yamlFiles = getFilesFromDir(dir);
+    for (Path file : yamlFiles) {
+      System.out.println("Reading file: " + file + "..");
+      try (BufferedReader reader = Files.newBufferedReader(file)) {
+        final String extension = getFileExtension(file.getFileName().toString().toLowerCase());
+        final RosettaFile rFile = switch (extension) {
+              case "json" -> new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
+              case "yml" -> new RosettaFile(this, (Map<String, Object>) yaml.loadFromReader(reader));
+              default -> throw new UnsupportedOperationException("Cannot parse file type " + extension);
+          };
+        files.put(file.toString(), rFile);
+      } catch (IOException e) {
+        e.printStackTrace();
       }
     }
   }
 
+  /**
+   * Gets the file extension from a file name.
+   * @param fileName Name of the file.
+   * @return The file extension. An empty string is returned if the file name does not have one.
+   */
+  private @NotNull String getFileExtension(@NotNull final String fileName) {
+    final int extensionPos = (fileName.lastIndexOf("."));
+    if (extensionPos == -1) {
+      return "";
+    }
+
+    return fileName.substring(extensionPos + 1);
+  }
+
   @NotNull
-  private List<File> getFilesFromDir(@NotNull File dir) {
-    if (!dir.exists()) return new ArrayList<>();
+  private List<Path> getFilesFromDir(@NotNull Path dir) {
+    if (!Files.exists(dir)) return new ArrayList<>();
 
-    final List<File> list = new ArrayList<>();
+    final List<Path> list = new ArrayList<>();
 
-    final File[] files = dir.listFiles();
-    if (files == null) return list;
+    try (Stream<Path> files = Files.list(dir)) {
+      for (Path next : files.toList()) {
+        if (Files.isDirectory(next)) {
+          if (!next.getFileName().toString().equals("..")) {
+            list.addAll(getFilesFromDir(next));
+          }
+          continue;
+        }
 
-    for (File next : files) {
-      if (next.isDirectory() && !next.getName().equals("..")) {
-        list.addAll(getFilesFromDir(next));
+        final String extension = getFileExtension(next.getFileName().toString().toLowerCase());
+
+        if (extension.equals("json") || extension.equals("yml")) {
+          list.add(next);
+        }
       }
-      if (next.getName().toLowerCase().endsWith(".json")) {
-        list.add(next);
-      }
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
     return list;
@@ -102,7 +132,7 @@ public class Rosetta {
 
   public static void main(String[] yargs) throws IOException {
     final Rosetta rosetta = new Rosetta();
-    rosetta.addDirectory(new File("./rosetta/json/"));
+    rosetta.addDirectory(Path.of("./rosetta/json/"));
     rosetta.printNamespaces("");
 
     RosettaClass clazz = rosetta.getClass(LuaManager.GlobalObject.class);

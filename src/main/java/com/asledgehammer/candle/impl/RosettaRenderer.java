@@ -3,9 +3,15 @@ package com.asledgehammer.candle.impl;
 import com.asledgehammer.candle.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import zombie.Lua.LuaManager;
+import org.jetbrains.annotations.NotNull;
+import org.snakeyaml.engine.v2.api.Dump;
+import org.snakeyaml.engine.v2.api.DumpSettings;
+import org.snakeyaml.engine.v2.common.FlowStyle;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class RosettaRenderer implements CandleRenderAdapter {
@@ -79,8 +85,32 @@ public class RosettaRenderer implements CandleRenderAdapter {
         return candleAlias -> "";
     }
 
-    public void saveJSON(CandleGraph graph, File dir) {
+    /**
+     * Builds a map Rosetta representation of a class.
+     * @param clazz The class to represent.
+     * @return A Rosetta-formatted map describing the class.
+     */
+    private @NotNull Map<String, Object> classToMap(@NotNull CandleClass clazz) {
+        String packageName = clazz.getClazz().getPackageName();
 
+        // we are using a LinkedHashMap to preserve order of insertion
+        // order of insertion doesn't matter for the maps that only store one element anyway
+        Map<String, Object> mapFile = new LinkedHashMap<>();
+        Map<String, Object> mapLanguages = new HashMap<>();
+        Map<String, Object> mapJava = new HashMap<>();
+        Map<String, Object> mapPackages = new HashMap<>();
+        Map<String, Object> mapPackage = new HashMap<>();
+        mapFile.put("version", "1.1");
+        mapFile.put("languages", mapLanguages);
+        mapLanguages.put("java", mapJava);
+        mapJava.put("packages", mapPackages);
+        mapPackages.put(packageName, mapPackage);
+        mapPackage.put(clazz.getDocs().getName(), clazz.getDocs().toJSON());
+
+        return mapFile;
+    }
+
+    public void saveJSON(CandleGraph graph, File dir) {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         if (!dir.exists() && !dir.mkdirs()) {
@@ -88,56 +118,57 @@ public class RosettaRenderer implements CandleRenderAdapter {
         }
 
         for (CandleClass clazz : graph.classesSorted) {
+            String packageName = clazz.getClazz().getPackageName();
 
-            String namespace = clazz.getClazz().getPackageName().replaceAll("\\.", "-");
-            String namespace2 = namespace.replaceAll("\\.", "-");
-
-            File dirNamespace = new File(dir, namespace2);
-            if (!dirNamespace.exists() && !dirNamespace.mkdirs()) {
+            File dirPackage = new File(dir, packageName);
+            if (!dirPackage.exists() && !dirPackage.mkdirs()) {
                 throw new RuntimeException("Cannot create directory: " + dir.getPath());
             }
 
-            Map<String, Object> mapFile = new HashMap<>();
-            mapFile.put("$schema", "https://raw.githubusercontent.com/asledgehammer/PZ-Rosetta-Schema/main/rosetta-schema.json");
-            Map<String, Object> mapNamespaces = new HashMap<>();
-            Map<String, Object> mapNamespace = new HashMap<>();
-            mapNamespace.put(clazz.getLuaName(), clazz.getDocs().toJSON());
-            mapNamespaces.put(namespace, mapNamespace);
-            mapFile.put("namespaces", mapNamespaces);
+            String json = gson.toJson(classToMap(clazz));
 
-            String json = gson.toJson(mapFile);
-
-            File file = new File(dirNamespace, clazz.getLuaName() + ".json");
+            File file = new File(dirPackage, clazz.getDocs().getName() + ".json");
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
             CandleGraph.write(file, json);
         }
+    }
 
-        CandleClass candleGlobalObject = graph.classes.get(LuaManager.GlobalObject.class);
-        Map<String, CandleExecutableCluster<CandleMethod>> methods =
-                new HashMap<>(candleGlobalObject.getStaticMethods());
-        methods.putAll(candleGlobalObject.getMethods());
+    public void saveYAML(@NotNull CandleGraph graph, @NotNull Path dir) {
+        DumpSettings settings = DumpSettings.builder()
+                .setDefaultFlowStyle(FlowStyle.BLOCK)
+                .build();
+        Dump yaml = new Dump(settings);
 
-        Map<String, Object> mapFile = new HashMap<>();
-        mapFile.put("$schema", "https://raw.githubusercontent.com/asledgehammer/PZ-Rosetta-Schema/main/rosetta-schema.json");
 
-        List<Map<String, Object>> listMethods = new ArrayList<>();
-
-        int count = 0;
-        for (CandleExecutableCluster<CandleMethod> cluster : methods.values()) {
-            for (CandleMethod method : cluster.getExecutables()) {
-                listMethods.add(method.getDocs().toJSON());
-                count++;
+        if (!Files.exists(dir)) {
+            try {
+                Files.createDirectories(dir);
+            } catch (IOException e) {
+                throw new RuntimeException("Cannot create directory: " + dir);
             }
         }
 
-        System.out.println("Count: " + count);
+        for (CandleClass clazz : graph.classesSorted) {
+            String packageName = clazz.getClazz().getPackageName();
 
-        mapFile.put("methods", listMethods);
+            Path dirPackage = dir;
+            for (String pathElement : packageName.split("\\.")) {
+                dirPackage = dirPackage.resolve(pathElement);
+            }
 
-        String json = gson.toJson(mapFile);
+            if (!Files.exists(dirPackage)) {
+                try {
+                    Files.createDirectories(dirPackage);
+                } catch (IOException e) {
+                    throw new RuntimeException("Cannot create directory: " + dir);
+                }
+            }
 
-        File file = new File(dir, "global.json");
-        System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
-        CandleGraph.write(file, json);
+            String yml = yaml.dumpToString(classToMap(clazz));
+
+            File file = dirPackage.resolve(clazz.getDocs().getName() + ".yml").toFile();
+            System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");
+            CandleGraph.write(file, yml);
+        }
     }
 }

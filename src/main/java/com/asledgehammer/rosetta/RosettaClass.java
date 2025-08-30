@@ -249,7 +249,7 @@ public class RosettaClass extends RosettaEntity {
     }
 
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapClass = new HashMap<>();
+        Map<String, Object> mapClass = new LinkedHashMap<>();
 
         // MODIFIERS
         if(this.modifiers.length != 0) {
@@ -260,16 +260,27 @@ public class RosettaClass extends RosettaEntity {
 
         // FIELDS
         if (!this.fields.isEmpty()) {
-            Map<String, Object> mapFields = new HashMap<>();
+            Map<String, Object> mapFields = new LinkedHashMap<>();
+            Map<String, Object> mapFieldsStatic = new LinkedHashMap<>();
 
             List<String> listFieldNames = new ArrayList<>(this.fields.keySet());
             listFieldNames.sort(Comparator.naturalOrder());
 
             for (String fieldName : listFieldNames) {
-                mapFields.put(fieldName, fields.get(fieldName).toJSON());
+                RosettaField field = fields.get(fieldName);
+                if (field.isStatic()) {
+                    mapFieldsStatic.put(fieldName, field.toJSON());
+                } else {
+                    mapFields.put(fieldName, field.toJSON());
+                }
             }
 
-            mapClass.put("fields", mapFields);
+            if (!mapFields.isEmpty()) {
+                mapClass.put("fields", mapFields);
+            }
+            if (!mapFieldsStatic.isEmpty()) {
+                mapClass.put("staticFields", mapFieldsStatic);
+            }
         }
 
         // CONSTRUCTORS
@@ -284,14 +295,26 @@ public class RosettaClass extends RosettaEntity {
         // METHODS
         if (!this.methods.isEmpty()) {
             List<Map<String, Object>> listMethods = new ArrayList<>();
+            List<Map<String, Object>> listMethodsStatic = new ArrayList<>();
+
             List<String> listMethodNames = new ArrayList<>(this.methods.keySet());
             listMethodNames.sort(Comparator.naturalOrder());
             for (String methodName : listMethodNames) {
                 for (RosettaMethod method : this.methods.get(methodName).getMethods()) {
-                    listMethods.add(method.toJSON());
+                    if (method.isStatic()) {
+                        listMethodsStatic.add(method.toJSON());
+                    } else {
+                        listMethods.add(method.toJSON());
+                    }
                 }
             }
-            mapClass.put("methods", listMethods);
+
+            if (!listMethods.isEmpty()) {
+                mapClass.put("methods", listMethods);
+            }
+            if (!listMethodsStatic.isEmpty()) {
+                mapClass.put("staticMethods", listMethodsStatic);
+            }
         }
 
         // JAVATYPE
@@ -306,7 +329,9 @@ public class RosettaClass extends RosettaEntity {
         }
 
         // NOTES
-        mapClass.put("notes", this.notes);
+        if (this.notes != null) {
+            mapClass.put("notes", this.notes);
+        }
 
         return mapClass;
     }

@@ -1,13 +1,12 @@
 package com.asledgehammer.candle;
 
 import com.asledgehammer.rosetta.Rosetta;
-import com.google.common.reflect.ClassPath;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.nio.FloatBuffer;
+import java.nio.file.Path;
 import java.util.*;
 
 public class CandleGraph {
@@ -23,13 +22,6 @@ public class CandleGraph {
   int changed = 0;
 
   public void walk(boolean clear) {
-
-    try {
-      docs.addDirectory(new File("./rosetta/json/"));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
     if (clear) {
       aliases.clear();
       classes.clear();
@@ -82,13 +74,7 @@ public class CandleGraph {
     }
   }
 
-  public void walkLegacy(String rosettaPath) {
-    try {
-      docs.addDirectory(new File(rosettaPath));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
+  public void walkLegacy() {
     aliases.clear();
     classes.clear();
     aliasesSorted.clear();
@@ -232,6 +218,16 @@ public class CandleGraph {
       // Maybe this is better.
       addClass(clazz);
       // addAlias(clazz);
+    }
+  }
+
+  CandleGraph(Path rosettaPath) {
+    if (rosettaPath != null) {
+      try {
+        this.docs.addDirectory(rosettaPath);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
   }
 }

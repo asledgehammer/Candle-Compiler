@@ -66,7 +66,7 @@ public class RosettaConstructor extends RosettaEntity {
 
     @NotNull
     public Map<String, Object> toJSON() {
-        Map<String, Object> mapMethod = new HashMap<>();
+        Map<String, Object> mapMethod = new LinkedHashMap<>();
 
         // MODIFIERS
         if(this.modifiers.length != 0) {
@@ -84,8 +84,14 @@ public class RosettaConstructor extends RosettaEntity {
             mapMethod.put("parameters", mapParameters);
         }
 
+        if (this.deprecated) {
+            mapMethod.put("deprecated", true);
+        }
+
         // NOTES
-        mapMethod.put("notes", this.notes);
+        if (this.notes != null) {
+            mapMethod.put("notes", this.notes);
+        }
 
         return mapMethod;
     }

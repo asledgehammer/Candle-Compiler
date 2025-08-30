@@ -1,6 +1,6 @@
 package com.asledgehammer.rosetta;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,9 +41,11 @@ public class RosettaReturn extends RosettaEntity {
   }
 
   public Map<String, Object> toJSON() {
-    Map<String, Object> mapReturns = new HashMap<>();
+    Map<String, Object> mapReturns = new LinkedHashMap<>();
     mapReturns.put("type", this.type.toJSON());
-    mapReturns.put("notes", this.notes);
+    if (this.notes != null) {
+      mapReturns.put("notes", this.notes);
+    }
     return mapReturns;
   }
 }

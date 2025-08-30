@@ -8,13 +8,13 @@ import zombie.Lua.LuaManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
+import java.nio.file.Path;
 import java.util.*;
 
 class Candle {
 
   public static boolean addReturnClasses = false;
-  final CandleGraph graph = new CandleGraph();
+  final CandleGraph graph;
 
   public static boolean addSubClasses = false;
   public static boolean addSuperClasses = false;
@@ -81,31 +81,38 @@ class Candle {
   private static void mainRosetta(String[] yargs) throws IOException {
     String path = "./dist/";
     if (yargs.length != 0) path = yargs[0];
+    Path rosettaPath = Path.of("rosetta", "yml");
+    if (yargs.length > 1) {
+      rosettaPath = Path.of(yargs[1]);
+    }
 
     File dir = new File(path);
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
-    Candle candle = new Candle();
+    Candle candle = new Candle(rosettaPath);
     candle.walk(true);
 
     // Export to Rosetta
     RosettaRenderer renderer = new RosettaRenderer();
     candle.render(renderer);
-    renderer.saveJSON(candle.graph, new File("./dist2/"));
+    renderer.saveJSON(candle.graph, new File("./dist2/json/"));
+    renderer.saveYAML(candle.graph, new File("./dist2/yml/"));
   }
 
   private static void mainLua(String[] yargs) throws IOException {
     // any more arguments and this should probably be replaced with 'proper' handling
     String path = "./dist/";
     if (yargs.length != 0) path = yargs[0];
-    String rosettaPath = "./rosetta/json/";
-    if (yargs.length > 1) rosettaPath = yargs[1];
+    Path rosettaPath = Path.of("rosetta", "json");
+    if (yargs.length > 1) {
+      rosettaPath = Path.of(yargs[1]);
+    }
 
     File dir = new File(path);
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
-    Candle candle = new Candle();
-    candle.graph.walkLegacy(rosettaPath);
+    Candle candle = new Candle(rosettaPath);
+    candle.graph.walkLegacy();
 
     // Export to Lua
     candle.render(new EmmyLuaRenderer());
@@ -127,7 +134,7 @@ class Candle {
     File dir = new File(path);
     if (!dir.exists() && !dir.mkdirs()) throw new IOException("Failed to mkdirs: " + path);
 
-    Candle candle = new Candle();
+    Candle candle = new Candle(null);
     for (Class<?> clazz : parser.classes) {
       candle.graph.addClass(clazz);
     }
@@ -139,5 +146,13 @@ class Candle {
     // Export to Python
     PythonTypingsRenderer renderer = new PythonTypingsRenderer();
     renderer.render(candle.graph);
+  }
+
+  public Candle(Path rosettaPath) {
+    graph = new CandleGraph(rosettaPath);
+  }
+
+  public Candle() {
+    this(null);
   }
 }

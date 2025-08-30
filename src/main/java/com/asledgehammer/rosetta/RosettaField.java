@@ -43,7 +43,7 @@ public class RosettaField extends RosettaEntity {
   }
 
   public Map<String, Object> toJSON() {
-    Map<String, Object> mapField = new HashMap<>();
+    Map<String, Object> mapField = new LinkedHashMap<>();
 
     // NAME
     mapField.put("name", getName());
@@ -59,10 +59,14 @@ public class RosettaField extends RosettaEntity {
     mapField.put("type", this.type.toJSON());
 
     // DEPRECATED FLAG
-    mapField.put("deprecated", this.deprecated);
+    if (this.deprecated) {
+      mapField.put("deprecated", true);
+    }
 
     // NOTES
-    mapField.put("notes", this.notes);
+    if (this.notes != null) {
+      mapField.put("notes", this.notes);
+    }
 
     return mapField;
   }
@@ -93,5 +97,9 @@ public class RosettaField extends RosettaEntity {
 
   public boolean isDeprecated() {
     return this.deprecated;
+  }
+
+  public boolean isStatic() {
+    return Arrays.asList(this.modifiers).contains("static");
   }
 }
