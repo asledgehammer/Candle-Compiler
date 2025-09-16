@@ -114,17 +114,17 @@ public class CandleGraph {
       candleAlias.render(adapter.getAliasRenderer());
     }
     for (CandleClass candleClass : classesSorted) {
-      System.out.println("Candle: Render Class: " + candleClass.getLuaName());
+//      System.out.println("Candle: Render Class: " + candleClass.getLuaName());
       candleClass.render(adapter.getClassRenderer());
     }
   }
 
-  public void save(File dir) throws IOException {
+  public void save(File dir, String extension) throws IOException {
     saveAlias(dir);
 
     for (CandleClass candleClass : classesSorted) {
-      System.out.println("Candle: Writing: " + candleClass.getLuaName());
-      candleClass.save(dir);
+      System.out.println("Candle: Writing: " + candleClass.getLuaName() + "." + extension);
+      candleClass.save(dir, extension);
     }
   }
 

@@ -292,11 +292,11 @@ public class CandleClass extends CandleEntity<CandleClass> {
     return mapClass;
   }
 
-  public void save(@NotNull File dir) throws IOException {
+  public void save(@NotNull File dir, String extension) throws IOException {
     File dirPackage = new File(dir, getClazz().getPackageName().replace("\\.", "/"));
     if (!dirPackage.exists() && !dirPackage.mkdirs())
       throw new IOException("Cannot mkdirs: " + dirPackage.getPath());
-    File file = new File(dirPackage, getClazz().getSimpleName() + ".lua");
+    File file = new File(dirPackage, getClazz().getSimpleName() + "." + extension);
 
     if (getClazz().equals(LuaManager.GlobalObject.class)) {
       return;

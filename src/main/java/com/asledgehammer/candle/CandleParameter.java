@@ -96,4 +96,12 @@ public class CandleParameter extends CandleEntity<CandleParameter> {
 
     return mapParameter;
   }
+
+  public boolean isNullable() {
+    String type = getBasicType();
+    return switch (type) {
+      case "void", "boolean", "byte", "short", "int", "float", "double", "long" -> false;
+      default -> true;
+    };
+  }
 }

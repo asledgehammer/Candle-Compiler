@@ -131,7 +131,6 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
 
   public Map<String, Object> genDocs() {
 
-
     Map<String, Object> mapMethod = new HashMap<>();
 
     // NAME
@@ -173,5 +172,13 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
     }
 
     return mapMethod;
+  }
+
+  public boolean isReturnTypeNullable() {
+    String type = getBasicReturnType();
+    return switch (type) {
+      case "void", "boolean", "byte", "short", "int", "float", "double", "long" -> false;
+      default -> true;
+    };
   }
 }
