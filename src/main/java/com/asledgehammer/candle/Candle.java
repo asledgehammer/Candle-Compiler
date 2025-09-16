@@ -96,7 +96,7 @@ class Candle {
     RosettaRenderer renderer = new RosettaRenderer();
     candle.render(renderer);
     renderer.saveJSON(candle.graph, new File("./dist2/json/"));
-    renderer.saveYAML(candle.graph, new File("./dist2/yml/"));
+    renderer.saveYAML(candle.graph, Path.of("./dist2/yml/"));
   }
 
   private static void mainLua(String[] yargs) throws IOException {
