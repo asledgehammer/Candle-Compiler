@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -203,7 +204,7 @@ public class CandleGraph {
 
   public static void write(File file, String content) {
     try {
-      FileWriter writer = new FileWriter(file);
+      FileWriter writer = new FileWriter(file, StandardCharsets.UTF_8);
       writer.write(content);
       writer.flush();
       writer.close();
