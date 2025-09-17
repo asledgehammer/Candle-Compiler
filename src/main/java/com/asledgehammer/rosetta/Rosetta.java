@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 @SuppressWarnings({"unchecked", "unused"})
 public class Rosetta {
 
+  public static final boolean DEBUG = true;
+
   private static final Gson gson = new Gson();
   private static final Load yaml = new Load(LoadSettings.builder().build());
 
@@ -29,14 +31,27 @@ public class Rosetta {
 
     final List<Path> yamlFiles = getFilesFromDir(dir);
     for (Path file : yamlFiles) {
-      System.out.println("Reading file: " + file + "..");
+
+      // (Ignore project metafiles)
+      if (file.toString().startsWith(dir +  "\\.")) {
+        continue;
+      }
+
+      if (DEBUG) {
+        System.out.println("Reading file: " + file + "..");
+      }
       try (BufferedReader reader = Files.newBufferedReader(file)) {
         final String extension = getFileExtension(file.getFileName().toString().toLowerCase());
-        final RosettaFile rFile = switch (extension) {
-              case "json" -> new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
-              case "yml" -> new RosettaFile(this, (Map<String, Object>) yaml.loadFromReader(reader));
-              default -> throw new UnsupportedOperationException("Cannot parse file type " + extension);
-          };
+
+        final RosettaFile rFile =
+            switch (extension) {
+              case "json" ->
+                  new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
+              case "yml" ->
+                  new RosettaFile(this, (Map<String, Object>) yaml.loadFromReader(reader));
+              default ->
+                  throw new UnsupportedOperationException("Cannot parse file type " + extension);
+            };
         files.put(file.toString(), rFile);
       } catch (IOException e) {
         e.printStackTrace();
@@ -46,6 +61,7 @@ public class Rosetta {
 
   /**
    * Gets the file extension from a file name.
+   *
    * @param fileName Name of the file.
    * @return The file extension. An empty string is returned if the file name does not have one.
    */

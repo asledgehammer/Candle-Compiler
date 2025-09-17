@@ -86,8 +86,6 @@ class Candle {
 
     String s =
 """
-  Candle-Compiler (By asledgehammer, 2025)
-
   Arguments:
 
     -h, --help :: Displays this message. ::
@@ -113,6 +111,8 @@ class Candle {
   }
 
   public static void main(String[] yargs) {
+
+    System.out.println("Candle-Compiler (By asledgehammer, 2025)\n`");
 
     File outputDir = new File("dist/");
     File rosettaDir = new File("rosetta/");
