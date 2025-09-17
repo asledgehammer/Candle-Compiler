@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Candle" type="Application" factoryName="Application" nameIsGenerated="true">
+  <configuration default="false" name="Candle [Python]" type="Application" factoryName="Application">
     <option name="MAIN_CLASS_NAME" value="com.asledgehammer.candle.Candle" />
     <module name="Candle-Compiler.main" />
+    <option name="PROGRAM_PARAMETERS" value="-l python -o dist/python -r rosetta/pz-rosetta yml" />
     <option name="VM_PARAMETERS" value="-Xmx8g" />
     <extension name="coverage">
       <pattern>

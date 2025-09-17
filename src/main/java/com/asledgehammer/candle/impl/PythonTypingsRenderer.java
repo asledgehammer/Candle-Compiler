@@ -1,21 +1,17 @@
 package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.TypeVariable;
 import java.util.*;
-
-import static com.asledgehammer.candle.impl.PythonTypingsRenderer.ILLEGAL;
 
 public class PythonTypingsRenderer {
 
   public static List<String> ILLEGAL;
 
   public static final Map<String, Class<?>> DISCOVERED_CLASSES = new HashMap<>();
+
+  public static File DIR_OUTPUT = new File("dist");
 
   static {
     ILLEGAL =
@@ -65,8 +61,11 @@ public class PythonTypingsRenderer {
 
   public void render(CandleGraph graph) {
 
-    dir = new File("python/typings/");
-    if (!dir.exists()) dir.mkdirs();
+    dir = new File(DIR_OUTPUT, "typings");
+    if (!dir.exists() && !dir.mkdirs()) {
+      throw new RuntimeException("Failed to mkdirs: " + dir.getPath());
+    }
+
     List<Class<?>> clazzes = new ArrayList<>(graph.classes.keySet());
     clazzes.sort(Comparator.comparing(Class::getSimpleName));
     for (Class<?> clazz : clazzes) {
@@ -96,4 +95,3 @@ public class PythonTypingsRenderer {
     file.lines.addAll(file.digestClass(graph, clazz, 0));
   }
 }
-
