@@ -9,7 +9,6 @@ dist
 bin
 **/.DS_Store
 docs/
-/rosetta/
 dist2/
 python/
 classloaded.txt
