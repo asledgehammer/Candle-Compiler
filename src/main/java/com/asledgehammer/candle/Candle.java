@@ -159,7 +159,7 @@ class Candle {
                   }
               }
               index += 2;
-              break;
+              continue;
             }
           case "--output", "-o":
             {
@@ -170,7 +170,7 @@ class Candle {
                     "The Output directory argument isn't a valid directory: " + arg2);
               }
               index += 2;
-              break;
+              continue;
             }
           case "--rosetta", "-r":
             {
@@ -203,9 +203,11 @@ class Candle {
               }
 
               index += 3;
-              break;
+              continue;
             }
         }
+
+        throw new IllegalArgumentException("Unknown argument: " + arg1);
       }
 
       if (mode == MODE_NONE) {
