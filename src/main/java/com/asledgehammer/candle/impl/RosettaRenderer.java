@@ -4,9 +4,8 @@ import com.asledgehammer.candle.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.snakeyaml.engine.v2.api.Dump;
-import org.snakeyaml.engine.v2.api.DumpSettings;
-import org.snakeyaml.engine.v2.common.FlowStyle;
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,10 +133,8 @@ public class RosettaRenderer implements CandleRenderAdapter {
     }
 
     public void saveYAML(@NotNull CandleGraph graph, @NotNull Path dir) {
-        DumpSettings settings = DumpSettings.builder()
-                .setDefaultFlowStyle(FlowStyle.BLOCK)
-                .build();
-        Dump yaml = new Dump(settings);
+        LoaderOptions options = new LoaderOptions();
+        Yaml yaml = new Yaml(options);
 
 
         if (!Files.exists(dir)) {
@@ -164,7 +161,7 @@ public class RosettaRenderer implements CandleRenderAdapter {
                 }
             }
 
-            String yml = yaml.dumpToString(classToMap(clazz));
+            String yml = yaml.dump(classToMap(clazz));
 
             File file = dirPackage.resolve(clazz.getDocs().getName() + ".yml").toFile();
             System.out.println("RosettaRenderer: Writing: " + file.getPath() + "..");

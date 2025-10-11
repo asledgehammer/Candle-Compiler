@@ -3,8 +3,9 @@ package com.asledgehammer.rosetta;
 import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.snakeyaml.engine.v2.api.Load;
-import org.snakeyaml.engine.v2.api.LoadSettings;
+
+import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.Yaml;
 import zombie.Lua.LuaManager;
 
 import java.io.*;
@@ -19,7 +20,12 @@ public class Rosetta {
   public static final boolean DEBUG = true;
 
   private static final Gson gson = new Gson();
-  private static final Load yaml = new Load(LoadSettings.builder().build());
+  private static final Yaml yaml;
+
+  static {
+    LoaderOptions options = new LoaderOptions();
+    yaml = new Yaml(options);
+  }
 
   private final Map<String, RosettaFile> files = new HashMap<>();
   private final Map<String, RosettaPackage> packages = new HashMap<>();
@@ -33,7 +39,7 @@ public class Rosetta {
     for (Path file : yamlFiles) {
 
       // (Ignore project metafiles)
-      if (file.toString().startsWith(dir +  "\\.")) {
+      if (file.toString().startsWith(dir + "\\.")) {
         continue;
       }
 
@@ -48,7 +54,7 @@ public class Rosetta {
               case "json" ->
                   new RosettaFile(this, (Map<String, Object>) gson.fromJson(reader, Map.class));
               case "yml" ->
-                  new RosettaFile(this, (Map<String, Object>) yaml.loadFromReader(reader));
+                  new RosettaFile(this, yaml.load(reader));
               default ->
                   throw new UnsupportedOperationException("Cannot parse file type " + extension);
             };

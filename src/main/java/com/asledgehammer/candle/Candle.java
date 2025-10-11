@@ -280,7 +280,7 @@ class Candle {
     candle.graph.walkLegacy();
 
     // Export to Lua
-    candle.render(new EmmyLuaRenderer());
+    candle.render(new LuaLSRenderer());
     candle.save(output);
   }
 

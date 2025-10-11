@@ -132,16 +132,16 @@ public class CandleClass extends CandleEntity<CandleClass> {
       if (!Modifier.isPublic(modifiers)) continue;
       //      else if (!Modifier.isStatic(modifiers)) continue;
 
-      CandleField emmyField = new CandleField(this, field);
-      String fKey = emmyField.getLuaName().toLowerCase();
+      CandleField luaField = new CandleField(this, field);
+      String fKey = luaField.getLuaName().toLowerCase();
 
       if (Modifier.isStatic(modifiers)) {
         if (!fieldsStatic.containsKey(fKey)) {
-          fieldsStatic.put(fKey, emmyField);
+          fieldsStatic.put(fKey, luaField);
         }
       } else {
         if (!fields.containsKey(fKey)) {
-          fields.put(fKey, emmyField);
+          fields.put(fKey, luaField);
         }
       }
     }
