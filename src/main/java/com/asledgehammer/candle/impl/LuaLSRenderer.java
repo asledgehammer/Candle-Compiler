@@ -11,7 +11,7 @@ import java.util.*;
 
 import static java.util.Map.entry;
 
-public class EmmyLuaRenderer implements CandleRenderAdapter {
+public class LuaLSRenderer implements CandleRenderAdapter {
 
   String classNameLegalCurrent = "";
 
