@@ -2,6 +2,7 @@ package com.asledgehammer.candle.java.reference;
 
 import java.lang.reflect.Type;
 
+@SuppressWarnings("unused")
 public class ReturnReference {
 
   private final MethodReference methodReference;
@@ -16,7 +17,8 @@ public class ReturnReference {
     this.genericType = genericType;
 
     ClassReference classReference = methodReference.getClassReference();
-    this.resolvedType = methodReference.getClassReference().resolveType(this.genericType, this.methodReference.getMethod().getDeclaringClass());
+    Class<?> deCl = methodReference.getMethod().getDeclaringClass();
+    this.resolvedType = classReference.resolveType(genericType, deCl);
   }
 
   public TypeReference getResolvedType() {

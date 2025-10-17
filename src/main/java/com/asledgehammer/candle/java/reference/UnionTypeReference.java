@@ -1,5 +1,6 @@
 package com.asledgehammer.candle.java.reference;
 
+@SuppressWarnings("unused")
 public class UnionTypeReference extends TypeReference implements BoundReference {
 
   private final TypeReference[] bounds;

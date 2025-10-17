@@ -1,5 +1,7 @@
 package com.asledgehammer.candle.java.reference;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
@@ -7,9 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("unused")
 public abstract class TypeReference {
 
-  private static final Map<String, TypeReference> BANK = new HashMap<>();
+  private static final Map<Type, TypeReference> BANK = new HashMap<>();
+
   static final List<String> PRIMITIVE_TYPES;
   static final TypeReference OBJECT_TYPE;
   static final TypeReference[] OBJECT_TYPE_MAP;
@@ -30,6 +34,11 @@ public abstract class TypeReference {
     OBJECT_TYPE_MAP = new TypeReference[] {OBJECT_TYPE};
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(compile() = " + compile() + ")";
+  }
+
   public abstract String getBase();
 
   public abstract String compile();
@@ -45,35 +54,46 @@ public abstract class TypeReference {
   public abstract TypeReference[] getBounds();
 
   public static TypeReference wrap(TypeVariable<?> type) {
+    if (BANK.containsKey(type)) {
+      return BANK.get(type);
+    }
+
     Type[] bounds = type.getBounds();
     TypeReference[] trBounds = new TypeReference[bounds.length];
     for (int i = 0; i < bounds.length; i++) {
       trBounds[i] = wrap(bounds[i]);
     }
-    return new UnionTypeReference(type.getTypeName(), true, trBounds);
+    TypeReference reference = new UnionTypeReference(type.getTypeName(), true, trBounds);
+
+    BANK.put(type, reference);
+    return reference;
   }
 
   public static TypeReference wrap(Type type) {
-    return wrap(type.getTypeName());
+    if (BANK.containsKey(type)) {
+      return BANK.get(type);
+    }
+    TypeReference reference = wrap(type.getTypeName());
+    BANK.put(type, reference);
+    return reference;
   }
 
   public static TypeReference wrap(Class<?> clazz) {
-    return wrap(clazz.getTypeName());
+    if (BANK.containsKey(clazz)) {
+      return BANK.get(clazz);
+    }
+    TypeReference reference = wrap(clazz.getTypeName());
+    BANK.put(clazz, reference);
+    return reference;
   }
 
   public static TypeReference wrap(String rawType) {
-    if (BANK.containsKey(rawType)) {
-      return BANK.get(rawType);
-    }
-
     // No need to iterate.
     if (!rawType.contains("&")) {
       TypeReference reference = new SimpleTypeReference(rawType);
       if (reference.isGeneric()) {
         reference = new UnionTypeReference(reference.getBase(), true, OBJECT_TYPE_MAP);
       }
-
-      BANK.put(rawType, reference);
       return reference;
     }
 
@@ -88,6 +108,18 @@ public abstract class TypeReference {
       sub = rawType.substring(rawType.indexOf(" super ") + " super ".length());
     }
 
+    List<String> list = getStrings(sub);
+
+    TypeReference[] typeAliases = new TypeReference[list.size()];
+    for (int i = 0; i < typeAliases.length; i++) {
+      typeAliases[i] = wrap(list.get(i));
+    }
+
+    return new UnionTypeReference(base, extendsOrSuper, typeAliases);
+  }
+
+  @NotNull
+  private static List<String> getStrings(String sub) {
     List<String> list = new ArrayList<>();
     int level = 0;
     StringBuilder current = new StringBuilder();
@@ -107,28 +139,17 @@ public abstract class TypeReference {
     if (!current.isEmpty()) {
       list.add(current.toString().trim());
     }
-
-    List<TypeReference> types = new ArrayList<>();
-    for (String boundType : list) {
-      types.add(wrap(boundType));
-    }
-
-    return new UnionTypeReference(base, extendsOrSuper, (TypeReference[]) types.toArray());
+    return list;
   }
 
   public static void clearCache() {
     BANK.clear();
   }
 
-  @Override
-  public String toString() {
-    return getClass().getSimpleName() + "(compile() = " + compile() + ")";
-  }
-
-  private static class TestType<K extends String> extends ArrayList<K> {}
+  private static class TestType<J, K extends Map<J, String>> extends ArrayList<K> {}
 
   public static void main(String[] args) {
-    TypeReference reference = wrap(TestType.class.getTypeParameters()[0]);
+    TypeReference reference = wrap(TestType.class.getTypeParameters()[1]);
     System.out.println(reference);
   }
 }

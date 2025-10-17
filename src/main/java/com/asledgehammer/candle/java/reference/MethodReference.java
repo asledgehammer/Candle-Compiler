@@ -4,8 +4,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
-import java.util.Arrays;
 
+@SuppressWarnings("unused")
 public class MethodReference implements BoundReference {
 
   private final ClassReference classReference;
@@ -24,7 +24,6 @@ public class MethodReference implements BoundReference {
     for (int i = 0; i < vars.length; i++) {
       this.bounds[i] = TypeReference.wrap(vars[i]);
     }
-    System.out.println(method + " -> " + Arrays.toString(this.bounds));
 
     // Compile parameter(s).
     Parameter[] p = method.getParameters();

@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 
+@SuppressWarnings("unused")
 public class ClassReference {
 
   private static final Map<Class<?>, ClassReference> CACHE = new HashMap<>();
@@ -30,11 +31,6 @@ public class ClassReference {
     TypeReference[] genericTypes = new TypeReference[vars.length];
     for (int i = 0; i < vars.length; i++) {
       TypeVariable<?> var = vars[i];
-      Type[] bounds = var.getBounds();
-      TypeReference[] boundsRef = new TypeReference[bounds.length];
-      for (int j = 0; j < bounds.length; j++) {
-        boundsRef[j] = TypeReference.wrap(bounds[j]);
-      }
       genericTypes[i] = TypeReference.wrap(var);
       this.genericTypesMap.put(var.getTypeName(), genericTypes[i]);
     }

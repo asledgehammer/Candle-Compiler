@@ -2,6 +2,7 @@ package com.asledgehammer.candle.java.reference;
 
 import java.lang.reflect.Field;
 
+@SuppressWarnings("unused")
 public class FieldReference {
 
   private final ClassReference classReference;
@@ -20,5 +21,9 @@ public class FieldReference {
 
   public Field getField() {
     return field;
+  }
+
+  public TypeReference getType() {
+    return type;
   }
 }
