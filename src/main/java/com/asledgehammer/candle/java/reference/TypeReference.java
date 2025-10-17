@@ -9,10 +9,10 @@ import java.util.Map;
 
 public abstract class TypeReference {
 
-
-  private static final Map<String, SimpleTypeReference> BANK = new HashMap<>();
+  private static final Map<String, TypeReference> BANK = new HashMap<>();
   static final List<String> PRIMITIVE_TYPES;
   static final TypeReference OBJECT_TYPE;
+  static final TypeReference[] OBJECT_TYPE_MAP;
 
   static {
     PRIMITIVE_TYPES = new ArrayList<>();
@@ -27,6 +27,7 @@ public abstract class TypeReference {
     PRIMITIVE_TYPES.add("long");
 
     OBJECT_TYPE = wrap(Object.class);
+    OBJECT_TYPE_MAP = new TypeReference[] {OBJECT_TYPE};
   }
 
   public abstract String getBase();
@@ -44,8 +45,12 @@ public abstract class TypeReference {
   public abstract TypeReference[] getBounds();
 
   public static TypeReference wrap(TypeVariable<?> type) {
-    System.out.println("### " + type.getTypeName());
-    return wrap(type.getTypeName());
+    Type[] bounds = type.getBounds();
+    TypeReference[] trBounds = new TypeReference[bounds.length];
+    for (int i = 0; i < bounds.length; i++) {
+      trBounds[i] = wrap(bounds[i]);
+    }
+    return new UnionTypeReference(type.getTypeName(), true, trBounds);
   }
 
   public static TypeReference wrap(Type type) {
@@ -63,7 +68,11 @@ public abstract class TypeReference {
 
     // No need to iterate.
     if (!rawType.contains("&")) {
-      SimpleTypeReference reference = new SimpleTypeReference(rawType);
+      TypeReference reference = new SimpleTypeReference(rawType);
+      if (reference.isGeneric()) {
+        reference = new UnionTypeReference(reference.getBase(), true, OBJECT_TYPE_MAP);
+      }
+
       BANK.put(rawType, reference);
       return reference;
     }
@@ -116,7 +125,10 @@ public abstract class TypeReference {
     return getClass().getSimpleName() + "(compile() = " + compile() + ")";
   }
 
+  private static class TestType<K extends String> extends ArrayList<K> {}
+
   public static void main(String[] args) {
-    new SimpleTypeReference("List<Map<String, Integer>>");
+    TypeReference reference = wrap(TestType.class.getTypeParameters()[0]);
+    System.out.println(reference);
   }
 }

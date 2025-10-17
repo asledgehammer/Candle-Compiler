@@ -1,6 +1,6 @@
 package com.asledgehammer.candle.java.reference;
 
-public class UnionTypeReference extends TypeReference {
+public class UnionTypeReference extends TypeReference implements BoundReference {
 
   private final TypeReference[] bounds;
   private final String base;
@@ -79,6 +79,7 @@ public class UnionTypeReference extends TypeReference {
     return primitive;
   }
 
+  @Override
   public TypeReference[] getBounds() {
     return bounds;
   }
