@@ -1,5 +1,6 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.candle.java.reference.MethodReference;
 import com.asledgehammer.rosetta.*;
 import org.jetbrains.annotations.NotNull;
 import se.krka.kahlua.integration.annotations.LuaMethod;
@@ -19,8 +20,12 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
   private final boolean exposed;
   private final boolean deprecated;
 
+  private final MethodReference reference;
+
   public CandleMethod(@NotNull CandleClass candleClass, @NotNull Method method) {
     super(method);
+
+    this.reference = candleClass.getReference().getMethodReference(method);
 
     this.candleClass = candleClass;
     this.method = method;
@@ -180,5 +185,9 @@ public class CandleMethod extends CandleExecutable<Method, CandleMethod> {
       case "void", "boolean", "byte", "short", "int", "float", "double", "long" -> false;
       default -> true;
     };
+  }
+
+  public MethodReference getReference() {
+    return this.reference;
   }
 }

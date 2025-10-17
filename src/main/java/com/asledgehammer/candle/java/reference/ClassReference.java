@@ -65,12 +65,26 @@ public class ClassReference {
       FieldReference fieldReference = new FieldReference(this, field);
       fieldReferenceMap.put(field, fieldReference);
     }
+    fields = clazz.getDeclaredFields();
+    for (Field field : fields) {
+      if (!fieldReferenceMap.containsKey(field)) {
+        FieldReference fieldReference = new FieldReference(this, field);
+        fieldReferenceMap.put(field, fieldReference);
+      }
+    }
 
     // Methods
     Method[] methods = clazz.getMethods();
     for (Method method : methods) {
       MethodReference methodReference = new MethodReference(this, method);
       methodReferenceMap.put(method, methodReference);
+    }
+    methods = clazz.getDeclaredMethods();
+    for (Method method : methods) {
+      if (!methodReferenceMap.containsKey(method)) {
+        MethodReference methodReference = new MethodReference(this, method);
+        methodReferenceMap.put(method, methodReference);
+      }
     }
   }
 
@@ -137,7 +151,7 @@ public class ClassReference {
           resolvedType = vars.get(rawType);
           if (resolvedType.isGeneric()) {
             TypeReference o = refNext.genericTypesMap.get(resolvedType.getBase());
-            bounds = o.getBounds();
+            if (o != null) bounds = o.getBounds();
           }
         }
       }
@@ -159,7 +173,9 @@ public class ClassReference {
   @NotNull
   public MethodReference getMethodReference(@NotNull Method method) {
     if (!methodReferenceMap.containsKey(method)) {
-      throw new RuntimeException("No method exists in class: " + this.clazz + " -> " + method);
+      // FIXME: This is probably not a bug but a hidden Reflection issue with AbstractCollections..
+      return new MethodReference(this, method);
+      // throw new RuntimeException("No method exists in class: " + this.clazz + " -> " + method);
     }
     return methodReferenceMap.get(method);
   }
@@ -167,7 +183,9 @@ public class ClassReference {
   @NotNull
   public FieldReference getFieldReference(@NotNull Field field) {
     if (!fieldReferenceMap.containsKey(field)) {
-      throw new RuntimeException("No field exists in class: " + this.clazz + " -> " + field);
+      // FIXME: This is probably not a bug but a hidden Reflection issue with AbstractCollections..
+      return new FieldReference(this, field);
+      // throw new RuntimeException("No field exists in class: " + this.clazz + " -> " + field);
     }
     return fieldReferenceMap.get(field);
   }

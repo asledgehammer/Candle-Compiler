@@ -1,5 +1,7 @@
 package com.asledgehammer.candle;
 
+import com.asledgehammer.candle.java.reference.CandleReference;
+import com.asledgehammer.candle.java.reference.ClassReference;
 import com.asledgehammer.rosetta.RosettaClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,6 +26,8 @@ public class CandleClass extends CandleEntity<CandleClass> {
   private final Map<String, CandleClass> subClasses = new HashMap<>();
   private CandleExecutableCluster<CandleConstructor> constructors;
 
+  private final ClassReference reference;
+
   @Nullable RosettaClass docs;
 
   boolean walkedMethods = false;
@@ -32,6 +36,7 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
   public CandleClass(@NotNull Class<?> clazz) {
     super(clazz);
+    this.reference = CandleReference.wrap(clazz);
   }
 
   @Override
@@ -346,6 +351,11 @@ public class CandleClass extends CandleEntity<CandleClass> {
 
   public boolean hasStaticFields() {
     return fieldsStatic != null && !fieldsStatic.isEmpty();
+  }
+
+  @NotNull
+  public ClassReference getReference() {
+    return reference;
   }
 
   @NotNull
