@@ -1,5 +1,7 @@
 package com.asledgehammer.candle.java.reference;
 
+import org.jetbrains.annotations.NotNull;
+
 @SuppressWarnings("unused")
 public class UnionTypeReference extends TypeReference implements BoundReference {
 
@@ -10,7 +12,7 @@ public class UnionTypeReference extends TypeReference implements BoundReference 
   private final boolean primitive;
   private final boolean generic;
 
-  UnionTypeReference(String base, boolean extendsOrSuper, TypeReference[] bounds) {
+  UnionTypeReference(@NotNull String base, boolean extendsOrSuper, @NotNull TypeReference[] bounds) {
     this.base = base;
     this.extendsOrSuper = extendsOrSuper;
     this.bounds = bounds;
@@ -28,6 +30,7 @@ public class UnionTypeReference extends TypeReference implements BoundReference 
     this.generic = generic;
   }
 
+  @NotNull
   @Override
   public String compile() {
     StringBuilder builder = new StringBuilder(this.base);
@@ -44,8 +47,9 @@ public class UnionTypeReference extends TypeReference implements BoundReference 
     return builder.toString();
   }
 
+  @NotNull
   @Override
-  public String compile(ClassReference clazzReference, Class<?> deCl) {
+  public String compile(@NotNull ClassReference clazzReference, @NotNull Class<?> deCl) {
     StringBuilder builder = new StringBuilder(this.base);
     if (this.extendsOrSuper) {
       builder.append(" extends ");
@@ -70,6 +74,7 @@ public class UnionTypeReference extends TypeReference implements BoundReference 
     return generic;
   }
 
+  @NotNull
   @Override
   public String getBase() {
     return this.base;
@@ -80,6 +85,7 @@ public class UnionTypeReference extends TypeReference implements BoundReference 
     return primitive;
   }
 
+  @NotNull
   @Override
   public TypeReference[] getBounds() {
     return bounds;

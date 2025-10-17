@@ -12,7 +12,7 @@ import java.util.Map;
 @SuppressWarnings("unused")
 public abstract class TypeReference {
 
-  private static final Map<Type, TypeReference> BANK = new HashMap<>();
+  private static final Map<Type, TypeReference> CACHE = new HashMap<>();
 
   static final List<String> PRIMITIVE_TYPES;
   static final TypeReference OBJECT_TYPE;
@@ -39,11 +39,14 @@ public abstract class TypeReference {
     return getClass().getSimpleName() + "(compile() = " + compile() + ")";
   }
 
+  @NotNull
   public abstract String getBase();
 
+  @NotNull
   public abstract String compile();
 
-  public abstract String compile(ClassReference reference, Class<?> deCl);
+  @NotNull
+  public abstract String compile(@NotNull ClassReference reference, @NotNull Class<?> deCl);
 
   public abstract boolean isGeneric();
 
@@ -51,43 +54,42 @@ public abstract class TypeReference {
 
   public abstract boolean isPrimitive();
 
+  @NotNull
   public abstract TypeReference[] getBounds();
 
-  public static TypeReference wrap(TypeVariable<?> type) {
-    if (BANK.containsKey(type)) {
-      return BANK.get(type);
-    }
-
+  @NotNull
+  public static TypeReference wrap(@NotNull TypeVariable<?> type) {
+    if (CACHE.containsKey(type)) return CACHE.get(type);
     Type[] bounds = type.getBounds();
     TypeReference[] trBounds = new TypeReference[bounds.length];
     for (int i = 0; i < bounds.length; i++) {
       trBounds[i] = wrap(bounds[i]);
     }
     TypeReference reference = new UnionTypeReference(type.getTypeName(), true, trBounds);
-
-    BANK.put(type, reference);
+    CACHE.put(type, reference);
     return reference;
   }
 
-  public static TypeReference wrap(Type type) {
-    if (BANK.containsKey(type)) {
-      return BANK.get(type);
-    }
+  @NotNull
+  public static TypeReference wrap(@NotNull Type type) {
+    if (CACHE.containsKey(type)) return CACHE.get(type);
     TypeReference reference = wrap(type.getTypeName());
-    BANK.put(type, reference);
+    CACHE.put(type, reference);
     return reference;
   }
 
-  public static TypeReference wrap(Class<?> clazz) {
-    if (BANK.containsKey(clazz)) {
-      return BANK.get(clazz);
+  @NotNull
+  public static TypeReference wrap(@NotNull Class<?> clazz) {
+    if (CACHE.containsKey(clazz)) {
+      return CACHE.get(clazz);
     }
     TypeReference reference = wrap(clazz.getTypeName());
-    BANK.put(clazz, reference);
+    CACHE.put(clazz, reference);
     return reference;
   }
 
-  public static TypeReference wrap(String rawType) {
+  @NotNull
+  public static TypeReference wrap(@NotNull String rawType) {
     // No need to iterate.
     if (!rawType.contains("&")) {
       TypeReference reference = new SimpleTypeReference(rawType);
@@ -119,7 +121,7 @@ public abstract class TypeReference {
   }
 
   @NotNull
-  private static List<String> getStrings(String sub) {
+  private static List<String> getStrings(@NotNull String sub) {
     List<String> list = new ArrayList<>();
     int level = 0;
     StringBuilder current = new StringBuilder();
@@ -143,7 +145,7 @@ public abstract class TypeReference {
   }
 
   public static void clearCache() {
-    BANK.clear();
+    CACHE.clear();
   }
 
   private static class TestType<J, K extends Map<J, String>> extends ArrayList<K> {}

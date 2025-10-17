@@ -1,5 +1,7 @@
 package com.asledgehammer.candle.java.reference;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 
@@ -7,11 +9,14 @@ import java.lang.reflect.Type;
 public class ParameterReference {
 
   private final MethodReference methodReference;
+  private final TypeReference resolvedType;
   private final Parameter parameter;
   private final Type genericType;
-  private final TypeReference resolvedType;
 
-  ParameterReference(MethodReference methodReference, Parameter parameter, Type genericType) {
+  ParameterReference(
+      @NotNull MethodReference methodReference,
+      @NotNull Parameter parameter,
+      @NotNull Type genericType) {
     this.methodReference = methodReference;
     this.parameter = parameter;
     this.genericType = genericType;

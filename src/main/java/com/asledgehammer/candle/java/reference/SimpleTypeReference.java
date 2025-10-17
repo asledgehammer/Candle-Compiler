@@ -1,5 +1,7 @@
 package com.asledgehammer.candle.java.reference;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,6 +55,7 @@ public class SimpleTypeReference extends TypeReference {
     this.bounds = this.generic ? OBJECT_BOUNDS : new TypeReference[] {this};
   }
 
+  @NotNull
   public String compile() {
     String compiled = this.base;
     if (subTypes != null) {
@@ -69,7 +72,8 @@ public class SimpleTypeReference extends TypeReference {
     return compiled;
   }
 
-  public String compile(ClassReference reference, Class<?> deCl) {
+  @NotNull
+  public String compile(@NotNull ClassReference reference, @NotNull Class<?> deCl) {
     String compiled = reference.resolveType(this, deCl).compile();
     if (subTypes != null) {
       StringBuilder subTypeStr = new StringBuilder();
@@ -95,6 +99,7 @@ public class SimpleTypeReference extends TypeReference {
     return generic;
   }
 
+  @NotNull
   @Override
   public String getBase() {
     return this.base;
@@ -104,6 +109,7 @@ public class SimpleTypeReference extends TypeReference {
     return primitive;
   }
 
+  @NotNull
   @Override
   public TypeReference[] getBounds() {
     return bounds;

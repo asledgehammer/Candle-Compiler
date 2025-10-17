@@ -1,5 +1,7 @@
 package com.asledgehammer.candle.java.reference;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -24,7 +26,7 @@ public class ClassReference {
   private final Map<Field, FieldReference> fieldReferenceMap = new HashMap<>();
   private final Map<Method, MethodReference> methodReferenceMap = new HashMap<>();
 
-  private ClassReference(Class<?> clazz) {
+  private ClassReference(@NotNull Class<?> clazz) {
     this.clazz = clazz;
 
     TypeVariable<?>[] vars = clazz.getTypeParameters();
@@ -72,11 +74,12 @@ public class ClassReference {
     }
   }
 
-  public Stack<ClassReference> resolveChain(Class<?> baseClazz) {
+  public Stack<ClassReference> resolveChain(@NotNull Class<?> baseClazz) {
     return resolveChain(baseClazz, new Stack<>());
   }
 
-  public Stack<ClassReference> resolveChain(Class<?> baseClazz, Stack<ClassReference> stack) {
+  public Stack<ClassReference> resolveChain(
+      @NotNull Class<?> baseClazz, Stack<ClassReference> stack) {
 
     // Found it.
     if (this.clazz == baseClazz) {
@@ -106,15 +109,15 @@ public class ClassReference {
     return stack;
   }
 
-  public TypeReference resolveType(String type, Class<?> deCl) {
+  public TypeReference resolveType(@NotNull String type, @NotNull Class<?> deCl) {
     return resolveType(TypeReference.wrap(type), deCl);
   }
 
-  public TypeReference resolveType(Type type, Class<?> deCl) {
+  public TypeReference resolveType(@NotNull Type type, @NotNull Class<?> deCl) {
     return resolveType(TypeReference.wrap(type), deCl);
   }
 
-  public TypeReference resolveType(TypeReference type, Class<?> deCl) {
+  public TypeReference resolveType(@NotNull TypeReference type, @NotNull Class<?> deCl) {
     String rawType = type.getBase();
     TypeReference resolvedType = type;
     TypeReference[] bounds = resolvedType.getBounds();
@@ -153,22 +156,30 @@ public class ClassReference {
     return "ClassReference(" + this.clazz + ")";
   }
 
-  public MethodReference getMethodReference(Method method) {
+  @NotNull
+  public MethodReference getMethodReference(@NotNull Method method) {
+    if (!methodReferenceMap.containsKey(method)) {
+      throw new RuntimeException("No method exists in class: " + this.clazz + " -> " + method);
+    }
     return methodReferenceMap.get(method);
   }
 
-  public FieldReference getFieldReference(Field field) {
+  @NotNull
+  public FieldReference getFieldReference(@NotNull Field field) {
+    if (!fieldReferenceMap.containsKey(field)) {
+      throw new RuntimeException("No field exists in class: " + this.clazz + " -> " + field);
+    }
     return fieldReferenceMap.get(field);
   }
 
+  @NotNull
   public Class<?> getClazz() {
     return clazz;
   }
 
-  public static ClassReference wrap(Class<?> clazz) {
-    if (CACHE.containsKey(clazz)) {
-      return CACHE.get(clazz);
-    }
+  @NotNull
+  public static ClassReference wrap(@NotNull Class<?> clazz) {
+    if (CACHE.containsKey(clazz)) return CACHE.get(clazz);
     return new ClassReference(clazz);
   }
 
@@ -176,8 +187,9 @@ public class ClassReference {
    * @param superClazz The super-class or super-interface.
    * @return The map of resolved generic types.
    */
+  @NotNull
   public static Map<String, TypeReference> createTypeMap(
-      Class<?> superClazzClazz, Type superClazz) {
+      @NotNull Class<?> superClazzClazz, @NotNull Type superClazz) {
     Type[] types = superClazzClazz.getTypeParameters();
     String rawSuperClazzName = superClazz.getTypeName();
 
@@ -227,7 +239,7 @@ public class ClassReference {
   static class Foo<F extends Bar> extends ArrayList<F> {
 
     public <G> G doThing() {
-      return (G) null;
+      return null;
     }
   }
 
