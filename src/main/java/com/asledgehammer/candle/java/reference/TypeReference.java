@@ -7,150 +7,44 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TypeReference {
+public abstract class TypeReference {
 
-  private static final Map<String, TypeReference> BANK = new HashMap<>();
 
-  private final List<TypeReference> subTypes;
-  private final String base;
-  private final boolean wildcard;
+  private static final Map<String, SimpleTypeReference> BANK = new HashMap<>();
+  static final List<String> PRIMITIVE_TYPES;
+  static final TypeReference OBJECT_TYPE;
 
-  private final TypeReference lower;
-  private final TypeReference upper;
+  static {
+    PRIMITIVE_TYPES = new ArrayList<>();
+    PRIMITIVE_TYPES.add("void");
+    PRIMITIVE_TYPES.add("boolean");
+    PRIMITIVE_TYPES.add("byte");
+    PRIMITIVE_TYPES.add("short");
+    PRIMITIVE_TYPES.add("char");
+    PRIMITIVE_TYPES.add("int");
+    PRIMITIVE_TYPES.add("float");
+    PRIMITIVE_TYPES.add("double");
+    PRIMITIVE_TYPES.add("long");
 
-  private TypeReference(String raw) {
-    if (raw.contains("<")) {
-      String base = raw.substring(0, raw.indexOf('<'));
-      if (base.contains(" extends ")) {
-        String[] split = base.split(" extends ");
-        this.base = split[0];
-        this.upper = this;
-        this.lower = TypeReference.wrap(split[1]);
-      } else if (base.contains(" super ")) {
-        String[] split = base.split(" super ");
-        this.base = split[0];
-        this.upper = TypeReference.wrap(split[1]);
-        this.lower = this;
-      } else {
-        this.base = base;
-        this.lower = this;
-        this.upper = this;
-      }
-      List<String> subTypesStr = getGenericTypes(raw);
-      subTypes = new ArrayList<>();
-      for (String subTypeStr : subTypesStr) {
-        subTypes.add(new TypeReference(subTypeStr));
-      }
-    } else {
-      String base = raw.trim();
-      if (base.contains(" extends ")) {
-        String[] split = base.split(" extends ");
-        this.base = split[0];
-        this.lower = this;
-        this.upper = TypeReference.wrap(split[1]);
-      } else if (base.contains(" super ")) {
-        String[] split = base.split(" super ");
-        this.base = split[0];
-        this.lower = TypeReference.wrap(split[1]);
-        this.upper = this;
-      } else {
-        this.base = base;
-        this.lower = this;
-        this.upper = this;
-      }
-      this.subTypes = null;
-    }
-    this.wildcard = this.base.equals("?");
-//    System.out.println("TypeReference(" + base + ") -> " + subTypes);
+    OBJECT_TYPE = wrap(Object.class);
   }
 
-  public String compile() {
-    String compiled = this.base;
-    if (subTypes != null) {
-      StringBuilder subTypeStr = new StringBuilder();
-      for (TypeReference subType : subTypes) {
-        if (subTypeStr.isEmpty()) {
-          subTypeStr = new StringBuilder(subType.compile());
-        } else {
-          subTypeStr.append(", ").append(subType.compile());
-        }
-      }
-      compiled += '<' + subTypeStr.toString() + '>';
-    }
-    return compiled;
-  }
+  public abstract String getBase();
 
-  public String compile(ClassReference reference, Class<?> deCl) {
-    String compiled = reference.resolveType(this, deCl).compile();
-    if (subTypes != null) {
-      StringBuilder subTypeStr = new StringBuilder();
-      for (TypeReference subType : subTypes) {
-        if (subTypeStr.isEmpty()) {
-          subTypeStr = new StringBuilder(subType.compile(reference, deCl));
-        } else {
-          subTypeStr.append(", ").append(subType.compile(reference, deCl));
-        }
-      }
-      compiled += '<' + subTypeStr.toString() + '>';
-    }
-    return compiled;
-  }
+  public abstract String compile();
 
-  public TypeReference getLower() {
-    return lower;
-  }
+  public abstract String compile(ClassReference reference, Class<?> deCl);
 
-  public TypeReference getUpper() {
-    return upper;
-  }
+  public abstract boolean isGeneric();
 
-  public boolean isWildcard() {
-    return wildcard;
-  }
+  public abstract boolean isWildcard();
 
-  public static List<String> getGenericTypes(String raw) {
-    int level = 0;
-    final List<String> vars = new ArrayList<>();
-    StringBuilder var = new StringBuilder();
-    for (int x = 0; x < raw.length(); x++) {
-      char curr = raw.charAt(x);
-      if (curr == '<') {
-        level++;
-        if (level > 1) {
-          var.append(curr);
-        }
-      } else if (curr == '>') {
-        level--;
-        if (level > 0) {
-          var.append(curr);
-        } else {
-          break;
-        }
-      } else if (curr == ',' && level == 1) {
-        vars.add(var.toString().trim());
-        var = new StringBuilder();
-      } else if (level != 0) {
-        var.append(curr);
-      }
-    }
+  public abstract boolean isPrimitive();
 
-    if (!var.isEmpty()) {
-      vars.add(var.toString().trim());
-    }
-
-    return vars;
-  }
-
-  public String getBase() {
-    return this.base;
-  }
-
-  @Override
-  public String toString() {
-    return "TypeReference(" + compile() + ")";
-  }
+  public abstract TypeReference[] getBounds();
 
   public static TypeReference wrap(TypeVariable<?> type) {
+    System.out.println("### " + type.getTypeName());
     return wrap(type.getTypeName());
   }
 
@@ -167,17 +61,62 @@ public class TypeReference {
       return BANK.get(rawType);
     }
 
-    TypeReference reference = new TypeReference(rawType);
-    BANK.put(rawType, reference);
+    // No need to iterate.
+    if (!rawType.contains("&")) {
+      SimpleTypeReference reference = new SimpleTypeReference(rawType);
+      BANK.put(rawType, reference);
+      return reference;
+    }
 
-    return reference;
+    String base;
+    String sub;
+    boolean extendsOrSuper = rawType.contains(" extends ");
+    if (extendsOrSuper) {
+      base = rawType.substring(0, rawType.indexOf(" extends ") - 1);
+      sub = rawType.substring(rawType.indexOf(" extends ") + " extends ".length());
+    } else {
+      base = rawType.substring(0, rawType.indexOf(" super ") - 1);
+      sub = rawType.substring(rawType.indexOf(" super ") + " super ".length());
+    }
+
+    List<String> list = new ArrayList<>();
+    int level = 0;
+    StringBuilder current = new StringBuilder();
+    for (int index = 0; index < sub.length(); index++) {
+      char curr = sub.charAt(index);
+      if (curr == '<') {
+        level++;
+      } else if (curr == '>') {
+        level--;
+      } else if (curr == '&' && level == 0) {
+        list.add(current.toString().trim());
+        current = new StringBuilder();
+        continue;
+      }
+      current.append(curr);
+    }
+    if (!current.isEmpty()) {
+      list.add(current.toString().trim());
+    }
+
+    List<TypeReference> types = new ArrayList<>();
+    for (String boundType : list) {
+      types.add(wrap(boundType));
+    }
+
+    return new UnionTypeReference(base, extendsOrSuper, (TypeReference[]) types.toArray());
   }
 
   public static void clearCache() {
     BANK.clear();
   }
 
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(compile() = " + compile() + ")";
+  }
+
   public static void main(String[] args) {
-    new TypeReference("List<Map<String, Integer>>");
+    new SimpleTypeReference("List<Map<String, Integer>>");
   }
 }

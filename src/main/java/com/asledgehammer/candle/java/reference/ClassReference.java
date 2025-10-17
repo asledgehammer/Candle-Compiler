@@ -5,6 +5,8 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.util.*;
 
+import static com.asledgehammer.candle.java.reference.SimpleTypeReference.OBJECT_BOUNDS;
+
 public class ClassReference {
 
   private static final Map<Class<?>, ClassReference> CACHE = new HashMap<>();
@@ -18,6 +20,8 @@ public class ClassReference {
   private final ClassReference[] superInterfazeReferences;
   private final MethodReference[] methodReferences;
   private final Map<Method, MethodReference> methodReferenceMap = new HashMap<>();
+  private final TypeReference[] genericTypes;
+  private final Map<String, TypeReference> genericTypesMap = new HashMap<>();
 
   public MethodReference getMethodReference(Method method) {
     return methodReferenceMap.get(method);
@@ -36,8 +40,17 @@ public class ClassReference {
     this.clazz = clazz;
 
     TypeVariable<?>[] vars = clazz.getTypeParameters();
-    for (TypeVariable<?> var : vars) {
-      upperBounds.put(var.getTypeName(), var.getBounds()[0]);
+    this.genericTypes = new TypeReference[vars.length];
+    for (int i = 0; i < vars.length; i++) {
+      TypeVariable<?> var = vars[i];
+      Type[] bounds = var.getBounds();
+      TypeReference[] boundsRef = new TypeReference[bounds.length];
+      for (int j = 0; j < bounds.length; j++) {
+        boundsRef[j] = TypeReference.wrap(bounds[j]);
+      }
+      String typeName = var.getTypeName();
+      this.genericTypes[i] = new UnionTypeReference(typeName, true, boundsRef);
+      this.genericTypesMap.put(var.getTypeName(), this.genericTypes[i]);
     }
 
     Type superClazz = clazz.getGenericSuperclass();
@@ -151,11 +164,11 @@ public class ClassReference {
   public TypeReference resolveType(TypeReference type, Class<?> deCl) {
     String rawType = type.getBase();
     TypeReference resolvedType = type;
+    TypeReference[] bounds = resolvedType.getBounds();
+    Stack<ClassReference> chain = resolveChain(deCl);
 
     // Here we resolve the hierarchy as a stack to traverse backwards.
-    List<ClassReference> stackRef = new ArrayList<>(resolveChain(deCl));
-
-    //    System.out.println("Resolved Chain: " + stackRef);
+    List<ClassReference> stackRef = new ArrayList<>(chain);
 
     ClassReference sup = stackRef.remove(stackRef.size() - 1);
     while (!stackRef.isEmpty()) {
@@ -166,16 +179,67 @@ public class ClassReference {
           // The class contains an entry of the var name as generic so transform it to the
           // applied type.
           resolvedType = vars.get(rawType);
+          if (resolvedType.isGeneric()) {
+            TypeReference o = refNext.genericTypesMap.get(resolvedType.getBase());
+            bounds = o.getBounds();
+          }
         }
       }
       sup = refNext;
     }
 
-    if (upperBounds.containsKey(rawType)) {
-      resolvedType = TypeReference.wrap(upperBounds.get(rawType).getTypeName());
+    System.out.println(
+        "Result: "
+            + resolvedType
+            + ", generic = "
+            + resolvedType.isGeneric()
+            + ", wildcard = "
+            + resolvedType.isWildcard());
+
+    if (!resolvedType.isPrimitive() && resolvedType.isGeneric()) {
+      return new UnionTypeReference(resolvedType.getBase(), true, bounds);
     }
 
     return resolvedType;
+  }
+
+  private TypeReference[] resolveBounds(TypeReference type, Class<?> deCl) {
+    return resolveBounds(type, deCl, resolveChain(deCl));
+  }
+
+  private TypeReference[] resolveBounds(
+      TypeReference type, Class<?> deCl, Stack<ClassReference> chain) {
+    if (chain == null) {
+      chain = resolveChain(deCl);
+    }
+
+    String rawType = type.getBase();
+
+    TypeReference resolvedType = type;
+    TypeReference[] bounds = OBJECT_BOUNDS;
+
+    // Here we resolve the hierarchy as a stack to traverse backwards.
+    List<ClassReference> stackRef = new ArrayList<>(chain);
+
+    ClassReference sup = stackRef.remove(stackRef.size() - 1);
+    while (!stackRef.isEmpty()) {
+      ClassReference refNext = stackRef.remove(stackRef.size() - 1);
+      if (refNext.assignedSuperVariables.containsKey(sup.clazz)) {
+        Map<String, TypeReference> vars = refNext.assignedSuperVariables.get(sup.clazz);
+        if (vars.containsKey(rawType)) {
+          // The class contains an entry of the var name as generic so transform it to the
+          // applied type.
+          resolvedType = vars.get(rawType);
+          if (resolvedType.isGeneric()) {
+            TypeReference o = refNext.genericTypesMap.get(resolvedType.getBase());
+            bounds = o.getBounds();
+          }
+        }
+      }
+      sup = refNext;
+    }
+
+    return bounds;
   }
 
   @Override
@@ -250,7 +314,7 @@ public class ClassReference {
 
   public static void main(String[] args) throws Exception {
 
-    Class<Foo> deCl = Foo.class;
+    Class<?> deCl = Foo.class;
     Method mGet = deCl.getMethod("get", int.class);
 
     ClassReference reference = ClassReference.wrap(deCl);
@@ -258,7 +322,5 @@ public class ClassReference {
 
     System.out.println(
         "Resolved return type: " + methodReference.getReturnReference().getResolvedType());
-
-    // TODO: Fix upper and lower bounds and then factor that into unresolved compiled types.
   }
 }
