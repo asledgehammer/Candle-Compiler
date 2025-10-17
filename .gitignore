@@ -11,4 +11,10 @@ bin
 docs/
 dist2/
 python/
+
+# Ignore zomboid test decompiled source files.
+media/
+generation/
+zombie/
+
 classloaded.txt
