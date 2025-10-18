@@ -6,23 +6,21 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
 
 @SuppressWarnings("unused")
-public class ParameterReference {
+public class ParameterReference<E extends ExecutableReference<?>> {
 
-  private final MethodReference methodReference;
   private final TypeReference resolvedType;
   private final Parameter parameter;
   private final Type genericType;
+  private final E executableReference;
 
   ParameterReference(
-      @NotNull MethodReference methodReference,
-      @NotNull Parameter parameter,
-      @NotNull Type genericType) {
-    this.methodReference = methodReference;
+      @NotNull E executableReference, @NotNull Parameter parameter, @NotNull Type genericType) {
+    this.executableReference = executableReference;
     this.parameter = parameter;
     this.genericType = genericType;
 
-    ClassReference classReference = methodReference.getClassReference();
-    Class<?> deCl = methodReference.getMethod().getDeclaringClass();
+    ClassReference classReference = executableReference.getClassReference();
+    Class<?> deCl = executableReference.getExecutable().getDeclaringClass();
     this.resolvedType = classReference.resolveType(genericType, deCl);
   }
 
@@ -30,8 +28,8 @@ public class ParameterReference {
     return resolvedType;
   }
 
-  public MethodReference getMethodReference() {
-    return methodReference;
+  public ExecutableReference<?> getExecutableReference() {
+    return executableReference;
   }
 
   public Parameter getParameter() {

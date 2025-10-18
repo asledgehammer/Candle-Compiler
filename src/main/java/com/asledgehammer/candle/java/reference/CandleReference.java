@@ -2,10 +2,7 @@ package com.asledgehammer.candle.java.reference;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 
 @SuppressWarnings("unused")
 public class CandleReference {
@@ -40,5 +37,11 @@ public class CandleReference {
   public static MethodReference wrap(@NotNull Method method) {
     ClassReference classReference = wrap(method.getDeclaringClass());
     return classReference.getMethodReference(method);
+  }
+
+  @NotNull
+  public static ConstructorReference wrap(@NotNull Constructor<?> constructor) {
+    ClassReference classReference = wrap(constructor.getDeclaringClass());
+    return classReference.getConstructorReference(constructor);
   }
 }

@@ -1,6 +1,11 @@
 package com.asledgehammer.candle.impl;
 
 import com.asledgehammer.candle.*;
+import com.asledgehammer.candle.java.reference.MethodReference;
+import com.asledgehammer.candle.java.reference.ParameterReference;
+import com.asledgehammer.candle.java.reference.ReturnReference;
+import com.asledgehammer.candle.java.reference.TypeReference;
+import com.asledgehammer.rosetta.*;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -18,14 +23,14 @@ public class RosettaRenderer implements CandleRenderAdapter {
 
   CandleRenderer<CandleField> fieldRenderer =
       field -> {
-        field.getDocs();
+        RosettaField rosettaField = field.getDocs();
         return "";
       };
 
   CandleRenderer<CandleExecutableCluster<CandleConstructor>> constructorRenderer =
       cluster -> {
         for (CandleConstructor constructor : cluster.getExecutables()) {
-          constructor.getDocs();
+          RosettaConstructor rosettaConstructor = constructor.getDocs();
         }
         return "";
       };
@@ -33,7 +38,37 @@ public class RosettaRenderer implements CandleRenderAdapter {
   CandleRenderer<CandleExecutableCluster<CandleMethod>> methodRenderer =
       cluster -> {
         for (CandleMethod method : cluster.getExecutables()) {
-          method.getDocs();
+          RosettaMethod rosettaMethod = method.getDocs();
+          MethodReference methodReference = method.getReference();
+
+          // Retrofit parameter type(s).
+          ParameterReference[] parameterReferences = methodReference.getParameterReferences();
+          List<RosettaParameter> rosettaParameters = rosettaMethod.getParameters();
+          for (int i = 0; i < rosettaParameters.size(); i++) {
+            RosettaParameter parameter = rosettaParameters.get(i);
+            String oldType = parameter.getType().getFull();
+            ParameterReference parameterReference = parameterReferences[i];
+            String newType = parameterReference.getResolvedType().compile();
+            Map<String, Object> raw = new HashMap<>();
+            raw.put("basic", "");
+            raw.put("full", newType);
+            raw.put("nullable", RosettaType.isNullPossible(newType));
+            RosettaType type = new RosettaType(raw);
+            parameter.setType(type);
+
+            System.out.println("Old: " + oldType + ", New: " + newType);
+          }
+
+          // Retrofit return type.
+          ReturnReference returnReference = methodReference.getReturnReference();
+          String newType = returnReference.getResolvedType().compile();
+          RosettaReturn rosettaReturn = rosettaMethod.getReturn();
+          Map<String, Object> raw = new HashMap<>();
+          raw.put("basic", "");
+          raw.put("full", newType);
+          raw.put("nullable", RosettaType.isNullPossible(newType));
+          RosettaType type = new RosettaType(raw);
+          rosettaReturn.setType(type);
         }
         return "";
       };

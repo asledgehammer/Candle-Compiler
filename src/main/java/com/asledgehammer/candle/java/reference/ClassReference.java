@@ -2,10 +2,7 @@ package com.asledgehammer.candle.java.reference;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
+import java.lang.reflect.*;
 import java.util.*;
 
 @SuppressWarnings("unused")
@@ -25,6 +22,7 @@ public class ClassReference {
   private final Map<String, TypeReference> genericTypesMap = new HashMap<>();
   private final Map<Field, FieldReference> fieldReferenceMap = new HashMap<>();
   private final Map<Method, MethodReference> methodReferenceMap = new HashMap<>();
+  private final Map<Constructor<?>, ConstructorReference> constructorReferenceMap = new HashMap<>();
 
   private ClassReference(@NotNull Class<?> clazz) {
     this.clazz = clazz;
@@ -85,6 +83,13 @@ public class ClassReference {
         MethodReference methodReference = new MethodReference(this, method);
         methodReferenceMap.put(method, methodReference);
       }
+    }
+
+    // Constructors
+    Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+    for (Constructor<?> constructor : constructors) {
+      ConstructorReference constructorReference = new ConstructorReference(this, constructor);
+      constructorReferenceMap.put(constructor, constructorReference);
     }
   }
 
@@ -168,6 +173,17 @@ public class ClassReference {
   @Override
   public String toString() {
     return "ClassReference(" + this.clazz + ")";
+  }
+
+  @NotNull
+  public ConstructorReference getConstructorReference(Constructor<?> constructor) {
+    if (!constructorReferenceMap.containsKey(constructor)) {
+      // FIXME: This is probably not a bug but a hidden Reflection issue with AbstractCollections..
+      return new ConstructorReference(this, constructor);
+      // throw new RuntimeException("No constructor exists in class: " + this.clazz + " -> " +
+      // constructor);
+    }
+    return constructorReferenceMap.get(constructor);
   }
 
   @NotNull

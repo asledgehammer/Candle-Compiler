@@ -49,6 +49,10 @@ public class RosettaParameter extends RosettaEntity {
         return this.type;
     }
 
+    public void setType(@NotNull RosettaType type) {
+        this.type = type;
+    }
+
     @Nullable
     public String getNotes() {
         return this.notes;

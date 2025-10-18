@@ -19,7 +19,7 @@ public class ReturnReference {
     this.genericType = genericType;
 
     ClassReference classReference = methodReference.getClassReference();
-    Class<?> deCl = methodReference.getMethod().getDeclaringClass();
+    Class<?> deCl = methodReference.getExecutable().getDeclaringClass();
     this.resolvedType = classReference.resolveType(genericType, deCl);
   }
 
